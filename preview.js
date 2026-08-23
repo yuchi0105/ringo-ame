@@ -78,6 +78,31 @@ document.querySelector('[data-persona-back]').addEventListener('click', () => {
     document.getElementById('persona-panel').classList.remove('is-mobile-detail');
     document.querySelector('.persona-scroll').scrollTop = 0;
 });
+const updatePersonaLinks = () => {
+    const linkedItems = [...document.querySelectorAll('[data-persona-linked-item]:not([hidden])')];
+    document.querySelector('[data-persona-link-count]').textContent = `${linkedItems.length} 項`;
+    document.querySelector('[data-persona-links-empty]').hidden = linkedItems.length !== 0;
+};
+document.querySelectorAll('[data-persona-link]').forEach((button) => button.addEventListener('click', () => {
+    const linked = button.classList.toggle('is-linked');
+    button.setAttribute('aria-pressed', String(linked));
+    button.querySelector('i').textContent = linked ? (button.dataset.personaLink === 'default' ? '已設定' : '已綁定') : '未綁定';
+    const item = document.querySelector(`[data-persona-linked-item="${button.dataset.personaLink}"]`);
+    if (item) item.hidden = !linked;
+    updatePersonaLinks();
+}));
+document.querySelectorAll('[data-persona-unlink]').forEach((button) => button.addEventListener('click', () => {
+    const key = button.dataset.personaUnlink;
+    const option = document.querySelector(`[data-persona-link="${key}"]`);
+    const item = document.querySelector(`[data-persona-linked-item="${key}"]`);
+    if (option) {
+        option.classList.remove('is-linked');
+        option.setAttribute('aria-pressed', 'false');
+        option.querySelector('i').textContent = '未綁定';
+    }
+    if (item) item.hidden = true;
+    updatePersonaLinks();
+}));
 document.querySelectorAll('[data-background-tab]').forEach((button) => button.addEventListener('click', () => {
     document.querySelectorAll('[data-background-tab]').forEach((item) => item.classList.toggle('is-active', item === button));
     document.querySelectorAll('[data-background-page]').forEach((page) => { page.hidden = page.dataset.backgroundPage !== button.dataset.backgroundTab; });
