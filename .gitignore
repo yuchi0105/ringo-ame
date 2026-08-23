@@ -1,0 +1,30 @@
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+auth.json
+credentials.json
+
+# Dependencies, caches, logs, and build output
+node_modules/
+.cache/
+dist/
+coverage/
+*.log
+
+# Editor and operating-system files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local temporary and backup files
+*.tmp
+*.temp
+*.bak
+*~

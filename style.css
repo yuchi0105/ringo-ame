@@ -1,0 +1,141 @@
+:root {
+    --st-pocket-safe-top: env(safe-area-inset-top, 0px);
+    --st-pocket-safe-right: env(safe-area-inset-right, 0px);
+    --st-pocket-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --st-pocket-safe-left: env(safe-area-inset-left, 0px);
+}
+
+html.st-pocket-ui-enabled,
+html.st-pocket-ui-enabled body {
+    min-height: 100%;
+    background-color: var(--SmartThemeBodyColor, #111);
+}
+
+html[data-st-pocket-background='fallback'] body {
+    background-image: none !important;
+}
+
+.st-pocket-ui-switcher {
+    position: fixed;
+    z-index: 10000;
+    top: calc(var(--st-pocket-safe-top) + 0.5rem);
+    right: calc(var(--st-pocket-safe-right) + 0.5rem);
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--SmartThemeBorderColor, rgb(128 128 128 / 40%));
+    border-radius: 0.75rem;
+    background: var(--SmartThemeBlurTintColor, rgb(20 20 20 / 85%));
+    backdrop-filter: blur(12px);
+}
+
+.st-pocket-ui-switcher .st-pocket-ui-mode {
+    min-width: 2.75rem;
+    min-height: 2.25rem;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.8rem;
+}
+
+.st-pocket-ui-switcher [data-st-pocket-mode='auto'][aria-pressed='true'],
+.st-pocket-ui-switcher [data-st-pocket-mode='mobile'][aria-pressed='true'],
+.st-pocket-ui-switcher [data-st-pocket-mode='desktop'][aria-pressed='true'] {
+    outline: 2px solid var(--SmartThemeQuoteColor, currentColor);
+    outline-offset: -2px;
+}
+
+.st-pocket-native-launcher {
+    position: fixed;
+    z-index: 10001;
+    top: calc(var(--st-pocket-safe-top) + 0.5rem);
+    left: calc(var(--st-pocket-safe-left) + 0.5rem);
+    display: none;
+}
+
+.st-pocket-launcher-toggle {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    background: var(--SmartThemeBlurTintColor, rgb(20 20 20 / 85%));
+    backdrop-filter: blur(12px);
+}
+
+.st-pocket-native-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    width: min(88vw, 22rem);
+    max-height: calc(100vh - var(--st-pocket-safe-top) - var(--st-pocket-safe-bottom) - 5rem);
+    max-height: calc(100dvh - var(--st-pocket-safe-top) - var(--st-pocket-safe-bottom) - 5rem);
+    padding: 0.5rem;
+    overflow-y: auto;
+    border: 1px solid var(--SmartThemeBorderColor, rgb(128 128 128 / 40%));
+    border-radius: 0.9rem;
+    background: var(--SmartThemeBlurTintColor, rgb(20 20 20 / 94%));
+    box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 35%);
+    backdrop-filter: blur(18px);
+}
+
+.st-pocket-native-menu[hidden] {
+    display: none;
+}
+
+.st-pocket-native-action {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    align-items: center;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+}
+
+.st-pocket-native-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+html[data-st-pocket-layout='mobile'] .st-pocket-native-launcher {
+    display: block;
+}
+
+html[data-st-pocket-layout='mobile'] body {
+    padding-top: var(--st-pocket-safe-top);
+    padding-right: var(--st-pocket-safe-right);
+    padding-bottom: var(--st-pocket-safe-bottom);
+    padding-left: var(--st-pocket-safe-left);
+}
+
+html[data-st-pocket-layout='mobile'] #chat,
+html[data-st-pocket-layout='mobile'] #send_form {
+    width: 100%;
+    max-width: 100%;
+}
+
+html[data-st-pocket-layout='mobile'] #chat {
+    padding-inline: clamp(0.5rem, 3vw, 1rem);
+    overflow-wrap: anywhere;
+}
+
+html[data-st-pocket-layout='mobile'] #send_form {
+    padding-right: max(0.35rem, var(--st-pocket-safe-right));
+    padding-bottom: max(0.35rem, var(--st-pocket-safe-bottom));
+    padding-left: max(0.35rem, var(--st-pocket-safe-left));
+}
+
+html[data-st-pocket-layout='mobile'] #send_textarea {
+    min-height: 2.75rem;
+    max-height: min(35vh, 15rem);
+    max-height: min(35dvh, 15rem);
+    font-size: 16px;
+}
+
+html[data-st-pocket-layout='mobile'] :is(#left-nav-panel, #right-nav-panel) {
+    max-width: min(92vw, 25rem);
+    padding-top: max(0.5rem, var(--st-pocket-safe-top));
+    padding-bottom: max(0.5rem, var(--st-pocket-safe-bottom));
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-ui-switcher {
+    top: 0.5rem;
+    right: 0.5rem;
+}

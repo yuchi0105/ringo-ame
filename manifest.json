@@ -1,0 +1,11 @@
+{
+  "display_name": "ST Pocket UI",
+  "loading_order": 100,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "Qiqi AI-Team",
+  "version": "0.1.0",
+  "homePage": ""
+}
