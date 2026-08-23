@@ -78,6 +78,22 @@ document.querySelector('[data-persona-back]').addEventListener('click', () => {
     document.getElementById('persona-panel').classList.remove('is-mobile-detail');
     document.querySelector('.persona-scroll').scrollTop = 0;
 });
+const personaPosition = document.querySelector('[data-persona-position]');
+const personaDepthOptions = document.querySelector('[data-persona-depth-options]');
+const updatePersonaPosition = () => {
+    personaDepthOptions.hidden = personaPosition.value !== 'in-chat';
+};
+personaPosition.addEventListener('change', updatePersonaPosition);
+updatePersonaPosition();
+const personaRenameDialog = document.querySelector('[data-persona-rename-dialog]');
+document.querySelector('[data-persona-rename]').addEventListener('click', () => personaRenameDialog.showModal());
+document.querySelector('[data-persona-rename-save]').addEventListener('click', () => {
+    const name = document.querySelector('[data-persona-name-input]').value.trim() || '[Unnamed Persona]';
+    const title = document.querySelector('[data-persona-title-input]').value.trim();
+    document.querySelector('[data-persona-name]').textContent = name;
+    document.querySelector('[data-persona-title]').textContent = title;
+    document.querySelector('[data-persona-title]').hidden = title.length === 0;
+});
 const updatePersonaLinks = () => {
     const linkedItems = [...document.querySelectorAll('[data-persona-linked-item]:not([hidden])')];
     document.querySelector('[data-persona-link-count]').textContent = `${linkedItems.length} 項`;
