@@ -189,7 +189,8 @@ document.querySelectorAll('.settings-panel input[type="range"]').forEach((input)
     const output = document.querySelector(`[data-output-for="${input.id}"]`);
     if (!output) return;
     input.addEventListener('input', () => {
-        output.value = input.step === '0.01' ? Number(input.value).toFixed(2) : input.value;
+        const precision = (input.step.split('.')[1] || '').length;
+        output.value = precision ? Number(input.value).toFixed(precision) : input.value;
     });
 });
 document.querySelectorAll('.prompt-summary').forEach((button) => {
