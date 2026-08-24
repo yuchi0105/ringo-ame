@@ -140,6 +140,15 @@ document.querySelector('[data-wi-expand-all]').addEventListener('click',()=>docu
 document.querySelector('[data-wi-collapse-all]').addEventListener('click',()=>document.querySelectorAll('.wi-entry').forEach((entry)=>entry.classList.remove('is-expanded')));
 document.querySelector('[data-wi-new-entry]').addEventListener('click',()=>{const entry=document.querySelector('.wi-entry').cloneNode(true);entry.querySelector('b').textContent='未命名條目';entry.querySelector('small').textContent='尚未設定關鍵字';entry.querySelectorAll('input, textarea').forEach((input)=>input.value='');entry.classList.add('is-expanded');entry.querySelector('.wi-entry-summary').addEventListener('click',()=>entry.classList.toggle('is-expanded'));document.querySelector('.wi-entry-list').prepend(entry);});
 document.querySelectorAll('[data-format-tab]').forEach((button)=>button.addEventListener('click',()=>{document.querySelectorAll('[data-format-tab]').forEach((item)=>item.classList.toggle('is-active',item===button));document.querySelectorAll('[data-format-page]').forEach((page)=>{page.hidden=page.dataset.formatPage!==button.dataset.formatTab;});document.querySelector('.format-scroll').scrollTop=0;}));
+
+const tokenizerSelect = [...document.querySelectorAll('#format-settings-panel .setting-card')]
+    .find((card) => card.querySelector(':scope > strong')?.textContent.trim() === 'Tokenizer')
+    ?.querySelector('select');
+if (tokenizerSelect) {
+    tokenizerSelect.innerHTML = ['最佳符合（建議）', 'None / Estimated', 'GPT-2', 'Llama 1/2', 'Llama 3', 'Gemma / Gemini', 'Jamba', 'Qwen2', 'Command-R', 'Command-A', 'NerdStash（NovelAI Clio）', 'NerdStash v2（NovelAI Kayra）', 'Mistral V1', 'Mistral Nemo', 'Yi', 'Claude 1/2', 'DeepSeek V3', 'API（WebUI / koboldcpp）']
+        .map((name) => `<option>${name}</option>`)
+        .join('');
+}
 const apiSource = document.getElementById('api-source');
 const vertexAuthMode = document.getElementById('vertex-auth-mode');
 const syncVertexAuthMode = () => {
