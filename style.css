@@ -198,3 +198,68 @@ html[data-st-pocket-layout='desktop'] .st-pocket-ui-switcher {
     top: 0.5rem;
     right: 0.5rem;
 }
+
+/* Desktop skin: keep SillyTavern's native DOM and behavior, only refine layout. */
+html[data-st-pocket-layout='desktop'] #top-bar {
+    border-bottom: 1px solid var(--st-pocket-border);
+    background: color-mix(in srgb, var(--SmartThemeBlurTintColor, #17151d) 92%, transparent);
+    box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 22%);
+    backdrop-filter: blur(20px) saturate(125%);
+}
+
+html[data-st-pocket-layout='desktop'] #top-settings-holder {
+    align-items: center;
+    justify-content: center;
+}
+
+html[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-header {
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+html[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-header:hover {
+    border-color: rgb(185 166 255 / 28%);
+    background: rgb(185 166 255 / 10%);
+    transform: translateY(-1px);
+}
+
+html[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-icon {
+    padding: 0;
+    color: var(--SmartThemeBodyColor, #f5f2fa);
+}
+
+html[data-st-pocket-layout='desktop'] #chat {
+    padding: 0.65rem clamp(1rem, 4vw, 3rem) 1.2rem;
+    border-inline: 1px solid var(--st-pocket-border);
+    background: color-mix(in srgb, var(--SmartThemeChatTintColor, #11131a) 94%, transparent);
+    scrollbar-width: thin;
+}
+
+html[data-st-pocket-layout='desktop'] #chat .mes {
+    margin-block: 0.25rem;
+    padding: 0.9rem 0.8rem;
+    border: 1px solid transparent;
+    border-radius: 0.9rem;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+html[data-st-pocket-layout='desktop'] #chat .mes:hover {
+    border-color: var(--st-pocket-border);
+    background: rgb(255 255 255 / 2.5%);
+}
+
+html[data-st-pocket-layout='desktop'] #send_form {
+    width: calc(100% - 1rem);
+    margin: 0.45rem auto 0.55rem;
+    border: 1px solid var(--st-pocket-border);
+    border-radius: 1rem;
+    background: var(--st-pocket-surface-raised);
+    box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 28%);
+    backdrop-filter: blur(20px) saturate(125%);
+}
+
+html[data-st-pocket-layout='desktop'] #send_textarea {
+    min-height: 2.75rem;
+    padding-block: 0.7rem;
+}
