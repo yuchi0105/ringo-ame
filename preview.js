@@ -140,10 +140,21 @@ document.querySelector('[data-wi-expand-all]').addEventListener('click',()=>docu
 document.querySelector('[data-wi-collapse-all]').addEventListener('click',()=>document.querySelectorAll('.wi-entry').forEach((entry)=>entry.classList.remove('is-expanded')));
 document.querySelector('[data-wi-new-entry]').addEventListener('click',()=>{const entry=document.querySelector('.wi-entry').cloneNode(true);entry.querySelector('b').textContent='未命名條目';entry.querySelector('small').textContent='尚未設定關鍵字';entry.querySelectorAll('input, textarea').forEach((input)=>input.value='');entry.classList.add('is-expanded');entry.querySelector('.wi-entry-summary').addEventListener('click',()=>entry.classList.toggle('is-expanded'));document.querySelector('.wi-entry-list').prepend(entry);});
 document.querySelectorAll('[data-format-tab]').forEach((button)=>button.addEventListener('click',()=>{document.querySelectorAll('[data-format-tab]').forEach((item)=>item.classList.toggle('is-active',item===button));document.querySelectorAll('[data-format-page]').forEach((page)=>{page.hidden=page.dataset.formatPage!==button.dataset.formatTab;});document.querySelector('.format-scroll').scrollTop=0;}));
+const apiSource = document.getElementById('api-source');
+const updateApiSource = () => {
+    const supported = [...document.querySelectorAll('[data-api-source-panel]')].some((panel) => panel.dataset.apiSourcePanel === apiSource.value);
+    document.querySelectorAll('[data-api-source-panel]').forEach((panel) => { panel.hidden = panel.dataset.apiSourcePanel !== apiSource.value; });
+    document.querySelectorAll('[data-api-sources]').forEach((section) => { section.hidden = !section.dataset.apiSources.split(' ').includes(apiSource.value); });
+    document.querySelector('[data-api-source-fallback]').hidden = supported;
+    document.querySelector('.api-settings-scroll').scrollTop = 0;
+};
+apiSource.addEventListener('change', updateApiSource);
+updateApiSource();
 document.querySelector('[data-connect-api]').addEventListener('click', (event) => {
     const button = event.currentTarget;
     const status = document.querySelector('[data-native-api-status]');
-    document.getElementById('api-key').type = 'password';
+    const activeKey = document.querySelector('[data-api-source-panel]:not([hidden]) [data-api-key]');
+    if (activeKey) activeKey.type = 'password';
     button.disabled = true;
     button.querySelector('span').textContent = '連線中…';
     status.textContent = '連線中……';
