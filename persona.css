@@ -10,6 +10,44 @@
   gap: 7px;
 }
 
+.persona-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.persona-pagination button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, .025);
+}
+
+.persona-pagination button:disabled {
+  opacity: .4;
+}
+
+.persona-more-actions {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.persona-more-actions select {
+  width: 100%;
+}
+
 .persona-link-option {
   display: flex;
   align-items: center;
