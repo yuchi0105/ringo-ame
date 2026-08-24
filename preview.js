@@ -141,6 +141,15 @@ document.querySelector('[data-wi-collapse-all]').addEventListener('click',()=>do
 document.querySelector('[data-wi-new-entry]').addEventListener('click',()=>{const entry=document.querySelector('.wi-entry').cloneNode(true);entry.querySelector('b').textContent='未命名條目';entry.querySelector('small').textContent='尚未設定關鍵字';entry.querySelectorAll('input, textarea').forEach((input)=>input.value='');entry.classList.add('is-expanded');entry.querySelector('.wi-entry-summary').addEventListener('click',()=>entry.classList.toggle('is-expanded'));document.querySelector('.wi-entry-list').prepend(entry);});
 document.querySelectorAll('[data-format-tab]').forEach((button)=>button.addEventListener('click',()=>{document.querySelectorAll('[data-format-tab]').forEach((item)=>item.classList.toggle('is-active',item===button));document.querySelectorAll('[data-format-page]').forEach((page)=>{page.hidden=page.dataset.formatPage!==button.dataset.formatTab;});document.querySelector('.format-scroll').scrollTop=0;}));
 const apiSource = document.getElementById('api-source');
+const vertexAuthMode = document.getElementById('vertex-auth-mode');
+const syncVertexAuthMode = () => {
+    if (!vertexAuthMode) return;
+    document.querySelectorAll('[data-vertex-auth]').forEach((section) => {
+        section.hidden = section.dataset.vertexAuth !== vertexAuthMode.value;
+    });
+};
+vertexAuthMode?.addEventListener('change', syncVertexAuthMode);
+syncVertexAuthMode();
 const updateApiSource = () => {
     const supported = [...document.querySelectorAll('[data-api-source-panel]')].some((panel) => panel.dataset.apiSourcePanel === apiSource.value);
     document.querySelectorAll('[data-api-source-panel]').forEach((panel) => { panel.hidden = panel.dataset.apiSourcePanel !== apiSource.value; });
