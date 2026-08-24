@@ -1,7 +1,6 @@
 const frame = document.getElementById('preview-device');
 const panel = document.getElementById('left-nav-panel');
 const backdrop = document.querySelector('.panel-backdrop');
-const pendingPanel = document.getElementById('pending-panel');
 const settingsScroll = document.querySelector('.settings-scroll');
 settingsScroll.dataset.activeView = 'parameters';
 // SillyTavern 原生頂欄的 9 個 drawer，各自指向對應的預覽 section。
@@ -16,7 +15,6 @@ const drawerPanels = {
     'persona': document.getElementById('persona-panel'),
     'characters': document.getElementById('characters-panel'),
 };
-const pendingDrawers = {};
 function closePanel() {
     panel.classList.remove('is-open');
     panel.setAttribute('aria-hidden', 'true');
@@ -36,16 +34,9 @@ function openSettingsPanel(section) {
 }
 function openDrawer(key) {
     const section = drawerPanels[key];
-    if (section) {
-        if (key === 'persona' || key === 'characters') section.classList.remove('is-mobile-detail');
-        openSettingsPanel(section);
-        return;
-    }
-    const meta = pendingDrawers[key];
-    if (!meta) return;
-    pendingPanel.querySelector('[data-pending-title]').textContent = meta.title;
-    pendingPanel.querySelector('[data-pending-eyebrow]').textContent = meta.eyebrow;
-    openSettingsPanel(pendingPanel);
+    if (!section) return;
+    if (key === 'persona' || key === 'characters') section.classList.remove('is-mobile-detail');
+    openSettingsPanel(section);
 }
 document.querySelectorAll('[data-preview-device]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -64,7 +55,7 @@ document.querySelector('[data-panel="left"]').addEventListener('click', () => {
 });
 document.querySelectorAll('[data-close-panel]').forEach((button) => button.addEventListener('click', closePanel));
 document.querySelectorAll('[data-st-drawer]').forEach((button) => button.addEventListener('click', () => openDrawer(button.dataset.stDrawer)));
-document.querySelectorAll('[data-close-ai-settings], [data-close-api-settings], [data-close-format-settings], [data-close-world-info], [data-close-user-settings], [data-close-backgrounds], [data-close-extensions], [data-close-persona], [data-close-characters], [data-close-pending]').forEach((button) => button.addEventListener('click', closeSettingsPanels));
+document.querySelectorAll('[data-close-ai-settings], [data-close-api-settings], [data-close-format-settings], [data-close-world-info], [data-close-user-settings], [data-close-backgrounds], [data-close-extensions], [data-close-persona], [data-close-characters]').forEach((button) => button.addEventListener('click', closeSettingsPanels));
 document.querySelectorAll('.persona-card:not(.persona-upload)').forEach((button) => button.addEventListener('click', () => {
     document.querySelectorAll('.persona-card').forEach((item) => item.classList.toggle('is-selected', item === button));
     if (frame.classList.contains('is-iphone')) {
