@@ -4,8 +4,7 @@ const backdrop = document.querySelector('.panel-backdrop');
 const pendingPanel = document.getElementById('pending-panel');
 const settingsScroll = document.querySelector('.settings-scroll');
 settingsScroll.dataset.activeView = 'parameters';
-// SillyTavern 原生頂欄的 9 個 drawer。已製作的面板指向自己的 section，
-// 尚未製作的統一開啟 pending-panel，讓原生入口不會有點了沒反應的情況。
+// SillyTavern 原生頂欄的 9 個 drawer，各自指向對應的預覽 section。
 const drawerPanels = {
     'ai-response': document.getElementById('ai-settings-panel'),
     'api': document.getElementById('api-settings-panel'),
@@ -15,10 +14,9 @@ const drawerPanels = {
     'backgrounds': document.getElementById('backgrounds-panel'),
     'extensions': document.getElementById('extensions-panel'),
     'persona': document.getElementById('persona-panel'),
+    'characters': document.getElementById('characters-panel'),
 };
-const pendingDrawers = {
-    'characters': { title: '角色管理', eyebrow: 'CHARACTER MANAGEMENT' },
-};
+const pendingDrawers = {};
 function closePanel() {
     panel.classList.remove('is-open');
     panel.setAttribute('aria-hidden', 'true');
@@ -39,7 +37,7 @@ function openSettingsPanel(section) {
 function openDrawer(key) {
     const section = drawerPanels[key];
     if (section) {
-        if (key === 'persona') section.classList.remove('is-mobile-detail');
+        if (key === 'persona' || key === 'characters') section.classList.remove('is-mobile-detail');
         openSettingsPanel(section);
         return;
     }
@@ -66,7 +64,7 @@ document.querySelector('[data-panel="left"]').addEventListener('click', () => {
 });
 document.querySelectorAll('[data-close-panel]').forEach((button) => button.addEventListener('click', closePanel));
 document.querySelectorAll('[data-st-drawer]').forEach((button) => button.addEventListener('click', () => openDrawer(button.dataset.stDrawer)));
-document.querySelectorAll('[data-close-ai-settings], [data-close-api-settings], [data-close-format-settings], [data-close-world-info], [data-close-user-settings], [data-close-backgrounds], [data-close-extensions], [data-close-persona], [data-close-pending]').forEach((button) => button.addEventListener('click', closeSettingsPanels));
+document.querySelectorAll('[data-close-ai-settings], [data-close-api-settings], [data-close-format-settings], [data-close-world-info], [data-close-user-settings], [data-close-backgrounds], [data-close-extensions], [data-close-persona], [data-close-characters], [data-close-pending]').forEach((button) => button.addEventListener('click', closeSettingsPanels));
 document.querySelectorAll('.persona-card:not(.persona-upload)').forEach((button) => button.addEventListener('click', () => {
     document.querySelectorAll('.persona-card').forEach((item) => item.classList.toggle('is-selected', item === button));
     if (frame.classList.contains('is-iphone')) {
@@ -77,6 +75,17 @@ document.querySelectorAll('.persona-card:not(.persona-upload)').forEach((button)
 document.querySelector('[data-persona-back]').addEventListener('click', () => {
     document.getElementById('persona-panel').classList.remove('is-mobile-detail');
     document.querySelector('.persona-scroll').scrollTop = 0;
+});
+document.querySelectorAll('.character-card').forEach((button) => button.addEventListener('click', () => {
+    document.querySelectorAll('.character-card').forEach((item) => item.classList.toggle('is-selected', item === button));
+    if (frame.classList.contains('is-iphone')) {
+        document.getElementById('characters-panel').classList.add('is-mobile-detail');
+        document.querySelector('.character-scroll').scrollTop = 0;
+    }
+}));
+document.querySelector('[data-character-back]').addEventListener('click', () => {
+    document.getElementById('characters-panel').classList.remove('is-mobile-detail');
+    document.querySelector('.character-scroll').scrollTop = 0;
 });
 const personaPosition = document.querySelector('[data-persona-position]');
 const personaDepthOptions = document.querySelector('[data-persona-depth-options]');
