@@ -143,6 +143,7 @@ document.querySelectorAll('[data-format-tab]').forEach((button)=>button.addEvent
 document.querySelector('[data-connect-api]').addEventListener('click', (event) => {
     const button = event.currentTarget;
     const status = document.querySelector('[data-native-api-status]');
+    document.getElementById('api-key').type = 'password';
     button.disabled = true;
     button.querySelector('span').textContent = '連線中…';
     status.textContent = '連線中……';
@@ -174,6 +175,9 @@ document.querySelector('[data-authorize-api]').addEventListener('click', () => {
 document.querySelectorAll('[data-manage-api-key]').forEach((button) => button.addEventListener('click', () => {
     document.querySelector('[data-native-api-status]').textContent = '已開啟金鑰管理預覽';
 }));
+document.querySelector('[data-view-api-keys]').addEventListener('click', () => {
+    document.querySelector('[data-native-api-status]').textContent = '已開啟隱藏金鑰預覽';
+});
 document.querySelectorAll('[data-settings-tab]').forEach((button) => {
     button.addEventListener('click', () => {
         settingsScroll.dataset.activeView = button.dataset.settingsTab;
