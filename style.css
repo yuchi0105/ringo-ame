@@ -48,8 +48,7 @@
     --st-pocket-apple-strong: #743f45;
 }
 
-html.st-pocket-ui-enabled,
-html.st-pocket-ui-enabled body {
+html.st-pocket-ui-enabled {
     min-height: 100%;
     color: var(--st-pocket-ink);
     background-color: var(--st-pocket-cream);
@@ -67,6 +66,15 @@ html.st-pocket-ui-enabled body {
     --black50a: rgb(74 69 64 / 16%) !important;
     --white30a: rgb(163 93 99 / 14%) !important;
     --cobalt30a: rgb(163 93 99 / 20%) !important;
+}
+
+/* SillyTavern renders its selected wallpaper on #bg1 behind body. Keeping body
+   opaque would hide that native layer when the Pocket background is disabled. */
+html.st-pocket-ui-enabled body {
+    min-height: 100%;
+    color: var(--st-pocket-ink);
+    background-color: transparent;
+    text-shadow: none;
 }
 
 html.st-pocket-ui-enabled body,
@@ -1123,6 +1131,13 @@ html.st-pocket-ui-enabled select:not(#chat .mes_text *) {
     text-shadow: none !important;
 }
 
+/* Keep message typography identical in mobile and desktop layouts without
+   forcing styles onto MVU/regex-rendered descendants inside the message body. */
+html.st-pocket-ui-enabled #chat .mes_text {
+    color: var(--st-pocket-ink);
+    text-shadow: none;
+}
+
 /* Complete native surface pass. Some full-page panels and standout headers do
    not live under the common popup wrappers above. Keep structural/image content
    intact while giving every control surface the same cream/apple hierarchy. */
@@ -1348,8 +1363,11 @@ html.st-pocket-ui-enabled :is(#gallery, .draggable) :is(input, textarea, select,
     opacity: 1 !important;
 }
 
-/* Top-bar drawer toggles are icon controls, not bordered form buttons. */
-html.st-pocket-ui-enabled #top-settings-holder :is(.drawer-header, .drawer-toggle, [role='button'], .interactable) {
+/* Top-bar controls are icon actions, not bordered form buttons. Keep this
+   broader than the native drawer holder so extension-provided top actions do
+   not inherit the global cream/sage button frame. */
+html.st-pocket-ui-enabled #top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable),
+html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable) {
     border: 0 !important;
     outline: 0;
     background-color: transparent !important;
@@ -1358,11 +1376,13 @@ html.st-pocket-ui-enabled #top-settings-holder :is(.drawer-header, .drawer-toggl
     filter: none !important;
 }
 
-html.st-pocket-ui-enabled #top-settings-holder :is(.drawer-header, .drawer-toggle, [role='button'], .interactable):hover {
+html.st-pocket-ui-enabled #top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):hover,
+html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):hover {
     background-color: var(--st-pocket-apple-soft) !important;
 }
 
-html.st-pocket-ui-enabled #top-settings-holder :is(.drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible {
+html.st-pocket-ui-enabled #top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible,
+html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible {
     outline: 2px solid var(--st-pocket-apple) !important;
     outline-offset: 2px;
 }
