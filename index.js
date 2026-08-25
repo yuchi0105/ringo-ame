@@ -9,10 +9,12 @@ const FLOATING_BUTTON_ENABLED_STORAGE_KEY = 'st-pocket-ui-floating-button-enable
 const FLOATING_BUTTON_POSITION_STORAGE_KEY = 'st-pocket-ui-floating-button-position';
 const DEFAULT_BACKGROUND_ENABLED_STORAGE_KEY = 'st-pocket-ui-default-background-enabled';
 const FONT_FAMILY_STORAGE_KEY = 'st-pocket-ui-font-family';
+const THEME_STORAGE_KEY = 'st-pocket-ui-theme';
 const VALID_MODES = new Set(['auto', 'mobile', 'desktop']);
 const VALID_INPUT_ROWS = new Set(['1', '2', '3']);
 const VALID_MESSAGE_WIDTHS = new Set(['narrow', 'standard', 'wide']);
 const VALID_MESSAGE_SPACINGS = new Set(['compact', 'standard', 'relaxed']);
+const VALID_THEMES = new Set(['cream-apple']);
 const FONT_FAMILIES = new Map([
     ['native', null],
     ['gensen', '"ST Pocket GenSen", "GenSenRounded2 TW", sans-serif'],
@@ -39,6 +41,7 @@ let memoryFloatingButtonEnabled = true;
 let memoryFloatingButtonPosition = null;
 let memoryDefaultBackgroundEnabled = true;
 let memoryFontFamily = 'native';
+let memoryTheme = 'cream-apple';
 
 // Pocket UI only opens SillyTavern's native drawers. It does not copy their
 // fields or own their data, so updates and other extensions keep working.
@@ -285,6 +288,32 @@ function applyDefaultBackgroundEnabled(enabled, { persist = true } = {}) {
     }
 }
 
+function getSavedTheme() {
+    let saved = memoryTheme;
+    try {
+        saved = globalThis.localStorage?.getItem(THEME_STORAGE_KEY) ?? memoryTheme;
+    } catch (error) {
+        console.warn('[ST Pocket UI] Theme setting is unavailable; using this session only.', error);
+    }
+    return VALID_THEMES.has(saved) ? saved : 'cream-apple';
+}
+
+function applyTheme(theme, { persist = true } = {}) {
+    const nextTheme = VALID_THEMES.has(theme) ? theme : 'cream-apple';
+    memoryTheme = nextTheme;
+    document.documentElement.dataset.stPocketTheme = nextTheme;
+
+    const setting = document.getElementById('st-pocket-ui-theme-setting');
+    if (setting) setting.value = nextTheme;
+    if (persist) {
+        try {
+            globalThis.localStorage?.setItem(THEME_STORAGE_KEY, nextTheme);
+        } catch (error) {
+            console.warn('[ST Pocket UI] Theme setting could not be persisted; using this session only.', error);
+        }
+    }
+}
+
 function getSavedFontFamily() {
     let saved = memoryFontFamily;
     try {
@@ -320,6 +349,7 @@ function applyExtensionEnabled(enabled, { persist = true } = {}) {
     document.documentElement.classList.toggle('st-pocket-ui-enabled', nextEnabled);
 
     if (nextEnabled) {
+        applyTheme(getSavedTheme(), { persist: false });
         applyMode(getSavedMode());
         applyInputRows(getSavedInputRows());
         const savedMessageFontSize = getSavedMessageFontSize();
@@ -379,6 +409,13 @@ function createExtensionSettings() {
                         <span>啟用本擴充</span>
                     </label>
                     <small>關閉後會停用 ST Pocket UI 的主題與響應式版面，設定入口仍會保留。</small>
+                </div>
+                <div class="st-pocket-setting-group">
+                    <label for="st-pocket-ui-theme-setting">主題</label>
+                    <select id="st-pocket-ui-theme-setting" class="text_pole">
+                        <option value="cream-apple">奶油蘋果</option>
+                    </select>
+                    <small>目前提供奶油蘋果；未來新增的主題會顯示在這裡。</small>
                 </div>
                 <div class="st-pocket-setting-group st-pocket-enabled-setting">
                     <label class="checkbox_label" for="st-pocket-ui-floating-button-setting">
@@ -462,6 +499,9 @@ function createExtensionSettings() {
     const enabledSetting = section.querySelector('#st-pocket-ui-enabled-setting');
     enabledSetting.checked = getSavedExtensionEnabled();
     enabledSetting.addEventListener('change', () => applyExtensionEnabled(enabledSetting.checked));
+    const themeSetting = section.querySelector('#st-pocket-ui-theme-setting');
+    themeSetting.value = getSavedTheme();
+    themeSetting.addEventListener('change', () => applyTheme(themeSetting.value));
     const floatingButtonSetting = section.querySelector('#st-pocket-ui-floating-button-setting');
     floatingButtonSetting.checked = getSavedFloatingButtonEnabled();
     floatingButtonSetting.addEventListener('change', () => applyFloatingButtonEnabled(floatingButtonSetting.checked));
@@ -503,6 +543,7 @@ function createExtensionSettings() {
     memoryMessageWidth = applyMessageChoice(MESSAGE_WIDTH_STORAGE_KEY, 'stPocketMessageWidth', memoryMessageWidth, VALID_MESSAGE_WIDTHS, 'standard');
     memoryMessageSpacing = applyMessageChoice(MESSAGE_SPACING_STORAGE_KEY, 'stPocketMessageSpacing', memoryMessageSpacing, VALID_MESSAGE_SPACINGS, 'standard');
     applyMessageLineHeight(messageLineHeightSetting.value);
+    applyTheme(themeSetting.value, { persist: false });
     applyFontFamily(fontFamilySetting.value, { persist: false });
     applyDefaultBackgroundEnabled(defaultBackgroundSetting.checked, { persist: false });
 }
