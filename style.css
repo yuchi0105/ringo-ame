@@ -18,6 +18,10 @@
     --st-pocket-muted: #756e66;
     --st-pocket-cream-border: rgb(118 105 91 / 22%);
     --st-pocket-cream-shadow: 0 0.75rem 2rem rgb(89 70 54 / 14%);
+    --st-pocket-field: #fffdf8;
+    --st-pocket-field-disabled: #e7e2d8;
+    --st-pocket-ink-strong: #37332f;
+    --st-pocket-apple-strong: #743f45;
 }
 
 html.st-pocket-ui-enabled,
@@ -26,6 +30,19 @@ html.st-pocket-ui-enabled body {
     color: var(--st-pocket-ink);
     background-color: var(--st-pocket-cream);
     text-shadow: none;
+    /* SillyTavern exposes these tokens to extensions. Mapping them here makes
+       well-behaved third-party UI inherit Pocket UI without extension-specific
+       rewrites. */
+    --SmartThemeBodyColor: var(--st-pocket-ink) !important;
+    --SmartThemeEmColor: var(--st-pocket-apple-strong) !important;
+    --SmartThemeQuoteColor: #64705c !important;
+    --SmartThemeBlurTintColor: var(--st-pocket-cream-raised) !important;
+    --SmartThemeBorderColor: var(--st-pocket-cream-border) !important;
+    --SmartThemeBlurStrength: 0px !important;
+    --black30a: rgb(74 69 64 / 10%) !important;
+    --black50a: rgb(74 69 64 / 16%) !important;
+    --white30a: rgb(163 93 99 / 14%) !important;
+    --cobalt30a: rgb(163 93 99 / 20%) !important;
 }
 
 html[data-st-pocket-background='fallback'] body {
@@ -44,7 +61,7 @@ html[data-st-pocket-background='fallback'] body {
     border-radius: 0.9rem;
     background: var(--st-pocket-surface);
     box-shadow: 0 0.65rem 1.8rem rgb(0 0 0 / 28%);
-    backdrop-filter: blur(18px) saturate(135%);
+    backdrop-filter: none;
 }
 
 .st-pocket-ui-switcher .st-pocket-ui-mode {
@@ -88,7 +105,7 @@ html[data-st-pocket-background='fallback'] body {
     border-radius: 0.9rem;
     background: var(--st-pocket-surface);
     box-shadow: 0 0.65rem 1.8rem rgb(0 0 0 / 28%);
-    backdrop-filter: blur(18px) saturate(135%);
+    backdrop-filter: none;
     transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
 }
 
@@ -112,7 +129,7 @@ html[data-st-pocket-background='fallback'] body {
     border-radius: 1rem;
     background: var(--st-pocket-surface-raised);
     box-shadow: var(--st-pocket-shadow);
-    backdrop-filter: blur(22px) saturate(140%);
+    backdrop-filter: none;
 }
 
 .st-pocket-native-menu[hidden] {
@@ -655,7 +672,7 @@ html[data-st-pocket-layout='desktop'] #top-bar {
     border-bottom: 1px solid var(--st-pocket-cream-border);
     background: rgb(251 248 241 / 96%);
     box-shadow: var(--st-pocket-cream-shadow);
-    backdrop-filter: blur(20px) saturate(110%);
+    backdrop-filter: none;
 }
 
 html[data-st-pocket-layout='desktop'] #top-settings-holder {
@@ -708,7 +725,7 @@ html[data-st-pocket-layout='desktop'] #send_form {
     align-items: center;
     background: rgb(251 248 241 / 100%);
     box-shadow: var(--st-pocket-cream-shadow);
-    backdrop-filter: blur(20px) saturate(125%);
+    backdrop-filter: none;
 }
 
 html[data-st-pocket-layout='desktop'] #send_textarea {
@@ -884,5 +901,145 @@ html.st-pocket-ui-enabled input,
 html.st-pocket-ui-enabled textarea,
 html.st-pocket-ui-enabled select {
     -webkit-font-smoothing: auto;
-    text-rendering: optimizeLegibility;
+    text-rendering: auto;
+    text-shadow: none !important;
+}
+
+/* Complete native surface pass. Some full-page panels and standout headers do
+   not live under the common popup wrappers above. Keep structural/image content
+   intact while giving every control surface the same cream/apple hierarchy. */
+html.st-pocket-ui-enabled :is(
+    #Backgrounds,
+    #AdvancedFormatting,
+    #WorldInfo,
+    #user-settings-block,
+    #PersonaManagement,
+    #rm_api_block,
+    #rm_extensions_block,
+    #right-nav-panel,
+    #left-nav-panel,
+    #floatingPrompt,
+    #cfgConfig,
+    #completion_prompt_manager_popup,
+    #shadow_popup,
+    #dialogue_popup,
+    #character_popup,
+    #select_chat_popup
+) {
+    color: var(--st-pocket-ink) !important;
+    background-color: var(--st-pocket-cream-raised) !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+html.st-pocket-ui-enabled :is(
+    .inline-drawer-header,
+    .standoutHeader,
+    .drawer-header,
+    .list-group-item
+) {
+    color: var(--st-pocket-ink-strong) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-sage-soft) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+html.st-pocket-ui-enabled :is(
+    .inline-drawer-content,
+    .popup-body,
+    .popup-content,
+    .options-content,
+    .range-block,
+    .range-block-counter,
+    .paginationjs,
+    .select2-dropdown,
+    .select2-results,
+    .ui-dialog,
+    .ui-widget-content
+) {
+    color: var(--st-pocket-ink) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-cream-raised) !important;
+    background-image: none !important;
+    text-shadow: none !important;
+}
+
+html.st-pocket-ui-enabled :is(
+    input,
+    textarea,
+    select,
+    .text_pole,
+    .select2-selection,
+    .select2-search__field
+):not([type='range']):not([type='checkbox']):not([type='radio']) {
+    color: var(--st-pocket-ink-strong) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-field) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+html.st-pocket-ui-enabled :is(input, textarea, select, .text_pole):disabled,
+html.st-pocket-ui-enabled :is(input, textarea, select, .text_pole)[aria-disabled='true'] {
+    color: #625c55 !important;
+    border-color: rgb(118 105 91 / 30%) !important;
+    background-color: var(--st-pocket-field-disabled) !important;
+    -webkit-text-fill-color: #625c55 !important;
+    opacity: 1 !important;
+}
+
+html.st-pocket-ui-enabled :is(input, textarea, .text_pole)::placeholder {
+    color: #6b645d !important;
+    -webkit-text-fill-color: #6b645d !important;
+    opacity: 1 !important;
+}
+
+html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(:disabled) {
+    color: var(--st-pocket-apple-strong) !important;
+    border-color: rgb(163 93 99 / 38%) !important;
+    background-color: var(--st-pocket-field) !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(:disabled):is(:hover, :focus-visible, [aria-pressed='true'], .selected, .active) {
+    color: var(--st-pocket-apple-strong) !important;
+    border-color: rgb(163 93 99 / 58%) !important;
+    background-color: var(--st-pocket-apple-soft) !important;
+}
+
+/* Known extension adapter: TopInfoBar already consumes SillyTavern tokens, but
+   its transparent fields need explicit surfaces for reliable contrast. */
+html.st-pocket-ui-enabled :is(#extensionTopBar, #extensionConnectionProfiles, #extensionSideBar) {
+    color: var(--st-pocket-ink) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-cream-raised) !important;
+    background-image: none !important;
+    backdrop-filter: none !important;
+    text-shadow: none !important;
+}
+
+html.st-pocket-ui-enabled :is(#extensionTopBar, #extensionConnectionProfiles, #extensionSideBar)
+    :is(input, select, .sideBarItem) {
+    color: var(--st-pocket-ink-strong) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-field) !important;
+    text-shadow: none !important;
+    opacity: 1 !important;
+}
+
+html.st-pocket-ui-enabled #extensionSideBar .sideBarItem.selected {
+    background-color: var(--st-pocket-apple-soft) !important;
+}
+
+html.st-pocket-ui-enabled #extensionSideBar .sideBarItem:hover {
+    background-color: var(--st-pocket-sage-soft) !important;
 }
