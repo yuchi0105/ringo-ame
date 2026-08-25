@@ -145,6 +145,14 @@ html[data-st-pocket-background='fallback'] body {
     outline-offset: 2px;
 }
 
+.st-pocket-ui-settings .inline-drawer-content {
+    gap: 0.5rem;
+}
+
+.st-pocket-ui-settings small {
+    color: var(--SmartThemeEmColor, #aaa4b5);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .st-pocket-ui-switcher *,
     .st-pocket-native-launcher * {
@@ -155,6 +163,15 @@ html[data-st-pocket-background='fallback'] body {
 
 html[data-st-pocket-layout='mobile'] .st-pocket-native-launcher {
     display: block;
+}
+
+/* Mobile uses Pocket UI's single drawer, while native drawer panels stay intact. */
+html[data-st-pocket-layout='mobile'] #top-settings-holder > .drawer > .drawer-toggle {
+    display: none;
+}
+
+html[data-st-pocket-layout='mobile'] #rightNavHolder .drawer-header {
+    display: none;
 }
 
 html[data-st-pocket-layout='mobile'] body {
@@ -173,6 +190,16 @@ html[data-st-pocket-layout='mobile'] #send_form {
 html[data-st-pocket-layout='mobile'] #chat {
     padding-inline: clamp(0.5rem, 3vw, 1rem);
     overflow-wrap: anywhere;
+}
+
+html[data-st-pocket-layout='mobile'] .welcomeRecent .recentChat .chatMessage {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+html[data-st-pocket-layout='mobile'] .welcomeRecent .recentChat .chatStats {
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
 html[data-st-pocket-layout='mobile'] #send_form {
@@ -262,4 +289,17 @@ html[data-st-pocket-layout='desktop'] #send_form {
 html[data-st-pocket-layout='desktop'] #send_textarea {
     min-height: 2.75rem;
     padding-block: 0.7rem;
+}
+
+/* User-selected composer height must win over the mobile and desktop defaults. */
+html[data-st-pocket-input-rows='1'] #send_textarea {
+    min-height: 2.75rem;
+}
+
+html[data-st-pocket-input-rows='2'] #send_textarea {
+    min-height: 4.25rem;
+}
+
+html[data-st-pocket-input-rows='3'] #send_textarea {
+    min-height: 5.75rem;
 }

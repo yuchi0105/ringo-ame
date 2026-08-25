@@ -1,9 +1,12 @@
 const STORAGE_KEY = 'st-pocket-ui-mode';
+const INPUT_ROWS_STORAGE_KEY = 'st-pocket-ui-input-rows';
 const VALID_MODES = new Set(['auto', 'mobile', 'desktop']);
+const VALID_INPUT_ROWS = new Set(['1', '2', '3']);
 const MOBILE_VIEWPORT = globalThis.matchMedia?.('(max-width: 767px)') ?? {
     matches: globalThis.innerWidth <= 767,
 };
 let memoryMode = 'auto';
+let memoryInputRows = '1';
 
 // Pocket UI only opens SillyTavern's native drawers. It does not copy their
 // fields or own their data, so updates and other extensions keep working.
@@ -15,7 +18,7 @@ const NATIVE_DRAWERS = [
     ['user-settings', '使用者設定', 'fa-user-cog', '#user-settings-button .drawer-toggle'],
     ['backgrounds', '背景', 'fa-panorama', '#backgrounds-button .drawer-toggle'],
     ['extensions', '擴充功能', 'fa-cubes', '#extensions-settings-button .drawer-toggle'],
-    ['persona', 'Persona 管理', 'fa-face-smile', '#persona-management-button .drawer-toggle'],
+    ['persona', '使用者角色管理', 'fa-face-smile', '#persona-management-button .drawer-toggle'],
     ['characters', '角色管理', 'fa-address-card', '#rightNavHolder .drawer-toggle'],
 ];
 
@@ -40,6 +43,30 @@ function saveMode(mode) {
     }
 }
 
+function getSavedInputRows() {
+    let saved = memoryInputRows;
+    try {
+        saved = globalThis.localStorage?.getItem(INPUT_ROWS_STORAGE_KEY) ?? memoryInputRows;
+    } catch (error) {
+        console.warn('[ST Pocket UI] Input height storage is unavailable; using this session only.', error);
+    }
+    return VALID_INPUT_ROWS.has(saved) ? saved : '1';
+}
+
+function applyInputRows(rows) {
+    const nextRows = VALID_INPUT_ROWS.has(String(rows)) ? String(rows) : '1';
+    memoryInputRows = nextRows;
+    document.documentElement.dataset.stPocketInputRows = nextRows;
+    try {
+        globalThis.localStorage?.setItem(INPUT_ROWS_STORAGE_KEY, nextRows);
+    } catch (error) {
+        console.warn('[ST Pocket UI] Input height could not be persisted; using this session only.', error);
+    }
+
+    const setting = document.getElementById('st-pocket-ui-input-rows-setting');
+    if (setting) setting.value = nextRows;
+}
+
 function syncLayout(mode = document.documentElement.dataset.stPocketMode || 'auto') {
     document.documentElement.dataset.stPocketLayout = mode === 'auto'
         ? (MOBILE_VIEWPORT.matches ? 'mobile' : 'desktop')
@@ -57,6 +84,53 @@ function applyMode(mode) {
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', String(active));
     });
+
+    const settingsMode = document.getElementById('st-pocket-ui-mode-setting');
+    if (settingsMode) settingsMode.value = nextMode;
+}
+
+function createExtensionSettings() {
+    if (document.getElementById('st-pocket-ui-settings')) return;
+
+    const settingsRoot = document.querySelector('#extensions_settings2, #extensions_settings');
+    if (!settingsRoot) {
+        console.warn('[ST Pocket UI] Extension settings container was not found.');
+        return;
+    }
+
+    const section = document.createElement('div');
+    section.id = 'st-pocket-ui-settings';
+    section.className = 'extension_container st-pocket-ui-settings';
+    section.innerHTML = `
+        <div class="inline-drawer">
+            <div class="inline-drawer-toggle inline-drawer-header">
+                <b>ST Pocket UI</b>
+                <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+            </div>
+            <div class="inline-drawer-content">
+                <label for="st-pocket-ui-mode-setting">版面模式</label>
+                <select id="st-pocket-ui-mode-setting" class="text_pole">
+                    <option value="auto">自動</option>
+                    <option value="mobile">手機</option>
+                    <option value="desktop">電腦</option>
+                </select>
+                <small>自動模式會依畫面寬度切換手機或電腦版面。</small>
+                <label for="st-pocket-ui-input-rows-setting">輸入欄位高度</label>
+                <select id="st-pocket-ui-input-rows-setting" class="text_pole">
+                    <option value="1">1 行（初始）</option>
+                    <option value="2">2 行</option>
+                    <option value="3">3 行</option>
+                </select>
+            </div>
+        </div>`;
+
+    const modeSetting = section.querySelector('#st-pocket-ui-mode-setting');
+    modeSetting.value = getSavedMode();
+    modeSetting.addEventListener('change', () => applyMode(modeSetting.value));
+    const inputRowsSetting = section.querySelector('#st-pocket-ui-input-rows-setting');
+    inputRowsSetting.value = getSavedInputRows();
+    inputRowsSetting.addEventListener('change', () => applyInputRows(inputRowsSetting.value));
+    settingsRoot.append(section);
 }
 
 const handleViewportChange = () => {
@@ -222,6 +296,8 @@ function initialize() {
     enableBrowserChromeFallbacks();
     createModeSwitcher();
     createNativeDrawerLauncher();
+    createExtensionSettings();
+    applyInputRows(getSavedInputRows());
 }
 
 if (document.readyState === 'loading') {

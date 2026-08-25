@@ -3,6 +3,9 @@ const panel = document.getElementById('left-nav-panel');
 const backdrop = document.querySelector('.panel-backdrop');
 const settingsScroll = document.querySelector('.settings-scroll');
 settingsScroll.dataset.activeView = 'parameters';
+document.querySelector('[data-preview-input-rows]')?.addEventListener('change', (event) => {
+    document.getElementById('send_textarea').rows = Number(event.target.value);
+});
 // SillyTavern 原生頂欄的 9 個 drawer，各自指向對應的預覽 section。
 const drawerPanels = {
     'ai-response': document.getElementById('ai-settings-panel'),
