@@ -317,7 +317,7 @@ function openPocketSettings() {
     const section = document.getElementById('st-pocket-ui-settings');
     if (!section) return;
 
-    extensionsToggle?.click();
+    if (!section.getClientRects().length) extensionsToggle?.click();
     const inlineDrawer = section.querySelector('.inline-drawer');
     const content = section.querySelector('.inline-drawer-content');
     if (content && getComputedStyle(content).display === 'none') {
@@ -335,18 +335,12 @@ function createWandMenuEntry() {
     container.id = 'st-pocket-ui-wand-entry';
     container.className = 'extension_container';
 
-    const entry = document.createElement('div');
-    entry.className = 'extensionsMenuExtensionButton interactable';
-    entry.tabIndex = 0;
-    entry.setAttribute('role', 'button');
-    entry.innerHTML = '<i class="fa-solid fa-mobile-screen-button" aria-hidden="true"></i><span>ST Pocket UI</span>';
+    const entry = document.createElement('button');
+    entry.type = 'button';
+    entry.className = 'st-pocket-wand-action interactable';
+    entry.setAttribute('aria-label', '開啟 ST Pocket UI 設定');
+    entry.innerHTML = '<i class="fa-fw fa-solid fa-mobile-screen-button extensionsMenuExtensionButton" aria-hidden="true"></i><span>ST Pocket UI</span>';
     entry.addEventListener('click', openPocketSettings);
-    entry.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            openPocketSettings();
-        }
-    });
     container.append(entry);
     menu.append(container);
     return true;
