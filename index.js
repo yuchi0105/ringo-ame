@@ -4,6 +4,7 @@ const MESSAGE_FONT_SIZE_STORAGE_KEY = 'st-pocket-ui-message-font-size';
 const MESSAGE_WIDTH_STORAGE_KEY = 'st-pocket-ui-message-width';
 const MESSAGE_SPACING_STORAGE_KEY = 'st-pocket-ui-message-spacing';
 const MESSAGE_LINE_HEIGHT_STORAGE_KEY = 'st-pocket-ui-message-line-height';
+const EXTENSION_ENABLED_STORAGE_KEY = 'st-pocket-ui-enabled';
 const VALID_MODES = new Set(['auto', 'mobile', 'desktop']);
 const VALID_INPUT_ROWS = new Set(['1', '2', '3']);
 const VALID_MESSAGE_WIDTHS = new Set(['narrow', 'standard', 'wide']);
@@ -23,6 +24,7 @@ let memoryMessageFontSize = null;
 let memoryMessageWidth = 'standard';
 let memoryMessageSpacing = 'standard';
 let memoryMessageLineHeight = String(MESSAGE_LINE_HEIGHT_DEFAULT);
+let memoryExtensionEnabled = true;
 
 // Pocket UI only opens SillyTavern's native drawers. It does not copy their
 // fields or own their data, so updates and other extensions keep working.
@@ -204,6 +206,53 @@ function applyMode(mode) {
     if (settingsMode) settingsMode.value = nextMode;
 }
 
+function getSavedExtensionEnabled() {
+    let saved = memoryExtensionEnabled;
+    try {
+        const stored = globalThis.localStorage?.getItem(EXTENSION_ENABLED_STORAGE_KEY);
+        if (stored !== null && stored !== undefined) saved = stored !== 'false';
+    } catch (error) {
+        console.warn('[ST Pocket UI] Enable-state storage is unavailable; using this session only.', error);
+    }
+    return Boolean(saved);
+}
+
+function applyExtensionEnabled(enabled, { persist = true } = {}) {
+    const nextEnabled = Boolean(enabled);
+    memoryExtensionEnabled = nextEnabled;
+    document.documentElement.classList.toggle('st-pocket-ui-enabled', nextEnabled);
+
+    if (nextEnabled) {
+        applyMode(getSavedMode());
+        applyInputRows(getSavedInputRows());
+        const savedMessageFontSize = getSavedMessageFontSize();
+        if (savedMessageFontSize) applyMessageFontSize(savedMessageFontSize);
+        const savedMessageWidth = getSavedChoice(MESSAGE_WIDTH_STORAGE_KEY, memoryMessageWidth, VALID_MESSAGE_WIDTHS, 'standard');
+        const savedMessageSpacing = getSavedChoice(MESSAGE_SPACING_STORAGE_KEY, memoryMessageSpacing, VALID_MESSAGE_SPACINGS, 'standard');
+        memoryMessageWidth = applyMessageChoice(MESSAGE_WIDTH_STORAGE_KEY, 'stPocketMessageWidth', savedMessageWidth, VALID_MESSAGE_WIDTHS, 'standard');
+        memoryMessageSpacing = applyMessageChoice(MESSAGE_SPACING_STORAGE_KEY, 'stPocketMessageSpacing', savedMessageSpacing, VALID_MESSAGE_SPACINGS, 'standard');
+        applyMessageLineHeight(getSavedMessageLineHeight());
+    } else {
+        delete document.documentElement.dataset.stPocketMode;
+        delete document.documentElement.dataset.stPocketLayout;
+        delete document.documentElement.dataset.stPocketInputRows;
+        delete document.documentElement.dataset.stPocketMessageWidth;
+        delete document.documentElement.dataset.stPocketMessageSpacing;
+        document.documentElement.style.removeProperty('--st-pocket-message-font-size');
+        document.documentElement.style.removeProperty('--st-pocket-message-line-height');
+    }
+
+    const setting = document.getElementById('st-pocket-ui-enabled-setting');
+    if (setting) setting.checked = nextEnabled;
+    if (persist) {
+        try {
+            globalThis.localStorage?.setItem(EXTENSION_ENABLED_STORAGE_KEY, String(nextEnabled));
+        } catch (error) {
+            console.warn('[ST Pocket UI] Enable state could not be persisted; using this session only.', error);
+        }
+    }
+}
+
 function createExtensionSettings() {
     if (document.getElementById('st-pocket-ui-settings')) return;
 
@@ -223,6 +272,13 @@ function createExtensionSettings() {
                 <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
             </div>
             <div class="inline-drawer-content">
+                <div class="st-pocket-setting-group st-pocket-enabled-setting">
+                    <label class="checkbox_label" for="st-pocket-ui-enabled-setting">
+                        <input id="st-pocket-ui-enabled-setting" type="checkbox">
+                        <span>啟用本擴充</span>
+                    </label>
+                    <small>關閉後會停用 ST Pocket UI 的主題與響應式版面，設定入口仍會保留。</small>
+                </div>
                 <div class="st-pocket-setting-group">
                     <label for="st-pocket-ui-mode-setting">版面模式</label>
                     <select id="st-pocket-ui-mode-setting" class="text_pole">
@@ -278,6 +334,9 @@ function createExtensionSettings() {
             </div>
         </div>`;
 
+    const enabledSetting = section.querySelector('#st-pocket-ui-enabled-setting');
+    enabledSetting.checked = getSavedExtensionEnabled();
+    enabledSetting.addEventListener('change', () => applyExtensionEnabled(enabledSetting.checked));
     const modeSetting = section.querySelector('#st-pocket-ui-mode-setting');
     modeSetting.value = getSavedMode();
     modeSetting.addEventListener('change', () => applyMode(modeSetting.value));
@@ -337,7 +396,7 @@ function createWandMenuEntry() {
 
     const entry = document.createElement('button');
     entry.type = 'button';
-    entry.className = 'st-pocket-wand-action interactable';
+    entry.className = 'list-group-item flex-container flexGap5 st-pocket-wand-action interactable';
     entry.setAttribute('aria-label', '開啟 ST Pocket UI 設定');
     entry.innerHTML = '<i class="fa-fw fa-solid fa-mobile-screen-button extensionsMenuExtensionButton" aria-hidden="true"></i><span>ST Pocket UI</span>';
     entry.addEventListener('click', openPocketSettings);
@@ -532,13 +591,13 @@ function initialize() {
     } catch (error) {
         console.warn('[ST Pocket UI] 無法取得 SillyTavern context，將只使用可用的原生 DOM。', error);
     }
-    document.documentElement.classList.add('st-pocket-ui-enabled');
     document.documentElement.dataset.stPocketContext = context ? 'ready' : 'unavailable';
     enableIPhoneSafeArea();
     enableBrowserChromeFallbacks();
     createModeSwitcher();
     createNativeDrawerLauncher();
     createExtensionSettings();
+    applyExtensionEnabled(getSavedExtensionEnabled(), { persist: false });
     if (!createWandMenuEntry()) {
         const observer = new MutationObserver(() => {
             if (createWandMenuEntry()) observer.disconnect();
@@ -546,9 +605,6 @@ function initialize() {
         observer.observe(document.body, { childList: true, subtree: true });
         globalThis.setTimeout(() => observer.disconnect(), 10000);
     }
-    applyInputRows(getSavedInputRows());
-    const savedMessageFontSize = getSavedMessageFontSize();
-    if (savedMessageFontSize) applyMessageFontSize(savedMessageFontSize);
 }
 
 if (document.readyState === 'loading') {

@@ -45,7 +45,11 @@ html.st-pocket-ui-enabled body {
     --cobalt30a: rgb(163 93 99 / 20%) !important;
 }
 
-html[data-st-pocket-background='fallback'] body {
+html:not(.st-pocket-ui-enabled) :is(.st-pocket-ui-switcher, .st-pocket-native-launcher) {
+    display: none !important;
+}
+
+html.st-pocket-ui-enabled[data-st-pocket-background='fallback'] body {
     background-image: none !important;
 }
 
@@ -242,6 +246,21 @@ html[data-st-pocket-background='fallback'] body {
     color: var(--st-pocket-muted);
 }
 
+.st-pocket-enabled-setting .checkbox_label {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.65rem;
+    cursor: pointer;
+}
+
+.st-pocket-enabled-setting input[type='checkbox'] {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0;
+    accent-color: var(--st-pocket-apple);
+}
+
 .st-pocket-ui-settings select.text_pole {
     min-height: 2.25rem;
     height: 2.25rem;
@@ -285,15 +304,16 @@ html[data-st-pocket-background='fallback'] body {
 }
 
 #st-pocket-ui-wand-entry .st-pocket-wand-action {
+    appearance: none;
     display: flex;
     width: 100%;
     min-height: 2.75rem;
     align-items: center;
     gap: 0.65rem;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid transparent;
+    padding: 0.35rem 0.5rem;
+    border: 0;
     color: var(--st-pocket-ink);
-    border-radius: 0.7rem;
+    border-radius: 0.4rem;
     background: transparent;
     font: inherit;
     text-align: left;
@@ -303,7 +323,6 @@ html[data-st-pocket-background='fallback'] body {
 #st-pocket-ui-wand-entry .st-pocket-wand-action:hover,
 #st-pocket-ui-wand-entry .st-pocket-wand-action:focus-visible {
     color: var(--st-pocket-apple);
-    border-color: rgb(163 93 99 / 38%);
     background: var(--st-pocket-apple-soft);
 }
 
@@ -896,12 +915,14 @@ html.st-pocket-ui-enabled :is(
 }
 
 html.st-pocket-ui-enabled body,
+html.st-pocket-ui-enabled body *,
 html.st-pocket-ui-enabled button,
 html.st-pocket-ui-enabled input,
 html.st-pocket-ui-enabled textarea,
 html.st-pocket-ui-enabled select {
-    -webkit-font-smoothing: auto;
-    text-rendering: auto;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+    text-rendering: optimizeLegibility;
     text-shadow: none !important;
 }
 
@@ -937,7 +958,16 @@ html.st-pocket-ui-enabled :is(
     .inline-drawer-header,
     .standoutHeader,
     .drawer-header,
-    .list-group-item
+    .dragTitle,
+    .drag-grabber,
+    .popup-header,
+    .popup-title,
+    .modal-header,
+    .modal-title,
+    .ui-dialog-titlebar,
+    .panelControlBar,
+    .title-bar,
+    .title_bar
 ) {
     color: var(--st-pocket-ink-strong) !important;
     border-color: var(--st-pocket-cream-border) !important;
@@ -1042,4 +1072,99 @@ html.st-pocket-ui-enabled #extensionSideBar .sideBarItem.selected {
 
 html.st-pocket-ui-enabled #extensionSideBar .sideBarItem:hover {
     background-color: var(--st-pocket-sage-soft) !important;
+}
+
+/* Native dialogs also include legacy dialogue popups and draggable utility
+   windows (for example Prompt Viewer and Image Gallery). */
+html.st-pocket-ui-enabled :is(
+    dialog,
+    [role='dialog'],
+    #bulk_tag_popup,
+    #dialogue_popup,
+    .draggable,
+    .ui-dialog
+) {
+    color: var(--st-pocket-ink-strong) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-cream-raised) !important;
+    background-image: none !important;
+    box-shadow: var(--st-pocket-cream-shadow) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+}
+
+html.st-pocket-ui-enabled :is(
+    dialog,
+    [role='dialog'],
+    #bulk_tag_popup,
+    #dialogue_popup,
+    .draggable,
+    .ui-dialog
+) :is(.dragTitle, .drag-grabber, .dragClose, .panelControlBar, label, legend, h1, h2, h3, h4, p, span, small, i) {
+    color: var(--st-pocket-ink-strong) !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+html.st-pocket-ui-enabled .draggable .dragTitle {
+    margin: -5px -5px 0;
+    padding: 0.35rem 3.25rem 0.35rem 0.65rem;
+    border-bottom: 1px solid var(--st-pocket-cream-border);
+    background-color: var(--st-pocket-sage-soft) !important;
+}
+
+html.st-pocket-ui-enabled :is(dialog, [role='dialog'], .popup, .draggable, .ui-dialog)
+    :is(header, .popup-header, .popup-title, .modal-header, .modal-title, .ui-dialog-titlebar, .panelControlBar, .title-bar, .title_bar) {
+    color: var(--st-pocket-ink-strong) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-sage-soft) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+html.st-pocket-ui-enabled :is(#gallery, .draggable) :is(input, textarea, select, .text_pole, .gallery-sort-select) {
+    color: var(--st-pocket-ink-strong) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background-color: var(--st-pocket-field) !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    opacity: 1 !important;
+}
+
+/* Top-bar drawer toggles are icon controls, not bordered form buttons. */
+html.st-pocket-ui-enabled #top-settings-holder :is(.drawer-header, .drawer-toggle, [role='button'], .interactable) {
+    border: 0 !important;
+    outline: 0;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+html.st-pocket-ui-enabled #top-settings-holder :is(.drawer-header, .drawer-toggle, [role='button'], .interactable):hover {
+    background-color: var(--st-pocket-apple-soft) !important;
+}
+
+html.st-pocket-ui-enabled #top-settings-holder :is(.drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible {
+    outline: 2px solid var(--st-pocket-apple) !important;
+    outline-offset: 2px;
+}
+
+/* Match the extension menu's native list items instead of rendering Pocket UI
+   as a separate framed control. */
+html.st-pocket-ui-enabled #extensionsMenu #st-pocket-ui-wand-entry .st-pocket-wand-action {
+    color: var(--st-pocket-ink) !important;
+    border: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+html.st-pocket-ui-enabled #extensionsMenu #st-pocket-ui-wand-entry .st-pocket-wand-action:is(:hover, :focus-visible) {
+    color: var(--st-pocket-apple-strong) !important;
+    background-color: var(--st-pocket-apple-soft) !important;
 }
