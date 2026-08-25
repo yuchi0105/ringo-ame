@@ -5,10 +5,20 @@ const MESSAGE_WIDTH_STORAGE_KEY = 'st-pocket-ui-message-width';
 const MESSAGE_SPACING_STORAGE_KEY = 'st-pocket-ui-message-spacing';
 const MESSAGE_LINE_HEIGHT_STORAGE_KEY = 'st-pocket-ui-message-line-height';
 const EXTENSION_ENABLED_STORAGE_KEY = 'st-pocket-ui-enabled';
+const FLOATING_BUTTON_ENABLED_STORAGE_KEY = 'st-pocket-ui-floating-button-enabled';
+const FLOATING_BUTTON_POSITION_STORAGE_KEY = 'st-pocket-ui-floating-button-position';
+const DEFAULT_BACKGROUND_ENABLED_STORAGE_KEY = 'st-pocket-ui-default-background-enabled';
+const FONT_FAMILY_STORAGE_KEY = 'st-pocket-ui-font-family';
 const VALID_MODES = new Set(['auto', 'mobile', 'desktop']);
 const VALID_INPUT_ROWS = new Set(['1', '2', '3']);
 const VALID_MESSAGE_WIDTHS = new Set(['narrow', 'standard', 'wide']);
 const VALID_MESSAGE_SPACINGS = new Set(['compact', 'standard', 'relaxed']);
+const FONT_FAMILIES = new Map([
+    ['native', null],
+    ['gensen', '"ST Pocket GenSen", "GenSenRounded2 TW", sans-serif'],
+    ['huninn', '"ST Pocket Huninn", "jf open 粉圓 2.1", sans-serif'],
+    ['iansui', '"ST Pocket Iansui", "芫荽", cursive'],
+]);
 const MESSAGE_FONT_SIZE_MIN = 12;
 const MESSAGE_FONT_SIZE_MAX = 24;
 const MESSAGE_FONT_SIZE_NATIVE = 16;
@@ -25,6 +35,10 @@ let memoryMessageWidth = 'standard';
 let memoryMessageSpacing = 'standard';
 let memoryMessageLineHeight = String(MESSAGE_LINE_HEIGHT_DEFAULT);
 let memoryExtensionEnabled = true;
+let memoryFloatingButtonEnabled = true;
+let memoryFloatingButtonPosition = null;
+let memoryDefaultBackgroundEnabled = true;
+let memoryFontFamily = 'native';
 
 // Pocket UI only opens SillyTavern's native drawers. It does not copy their
 // fields or own their data, so updates and other extensions keep working.
@@ -217,6 +231,89 @@ function getSavedExtensionEnabled() {
     return Boolean(saved);
 }
 
+function getSavedFloatingButtonEnabled() {
+    let saved = memoryFloatingButtonEnabled;
+    try {
+        const stored = globalThis.localStorage?.getItem(FLOATING_BUTTON_ENABLED_STORAGE_KEY);
+        if (stored !== null && stored !== undefined) saved = stored !== 'false';
+    } catch (error) {
+        console.warn('[ST Pocket UI] Floating button state is unavailable; using this session only.', error);
+    }
+    return Boolean(saved);
+}
+
+function applyFloatingButtonEnabled(enabled, { persist = true } = {}) {
+    const nextEnabled = Boolean(enabled);
+    memoryFloatingButtonEnabled = nextEnabled;
+    document.documentElement.classList.toggle('st-pocket-floating-button-hidden', !nextEnabled);
+
+    const setting = document.getElementById('st-pocket-ui-floating-button-setting');
+    if (setting) setting.checked = nextEnabled;
+    if (persist) {
+        try {
+            globalThis.localStorage?.setItem(FLOATING_BUTTON_ENABLED_STORAGE_KEY, String(nextEnabled));
+        } catch (error) {
+            console.warn('[ST Pocket UI] Floating button state could not be persisted; using this session only.', error);
+        }
+    }
+}
+
+function getSavedDefaultBackgroundEnabled() {
+    let saved = memoryDefaultBackgroundEnabled;
+    try {
+        const stored = globalThis.localStorage?.getItem(DEFAULT_BACKGROUND_ENABLED_STORAGE_KEY);
+        if (stored !== null && stored !== undefined) saved = stored !== 'false';
+    } catch (error) {
+        console.warn('[ST Pocket UI] Default background state is unavailable; using this session only.', error);
+    }
+    return Boolean(saved);
+}
+
+function applyDefaultBackgroundEnabled(enabled, { persist = true } = {}) {
+    const nextEnabled = Boolean(enabled);
+    memoryDefaultBackgroundEnabled = nextEnabled;
+    document.documentElement.classList.toggle('st-pocket-default-background', nextEnabled);
+
+    const setting = document.getElementById('st-pocket-ui-default-background-setting');
+    if (setting) setting.checked = nextEnabled;
+    if (persist) {
+        try {
+            globalThis.localStorage?.setItem(DEFAULT_BACKGROUND_ENABLED_STORAGE_KEY, String(nextEnabled));
+        } catch (error) {
+            console.warn('[ST Pocket UI] Default background state could not be persisted; using this session only.', error);
+        }
+    }
+}
+
+function getSavedFontFamily() {
+    let saved = memoryFontFamily;
+    try {
+        saved = globalThis.localStorage?.getItem(FONT_FAMILY_STORAGE_KEY) ?? memoryFontFamily;
+    } catch (error) {
+        console.warn('[ST Pocket UI] Font setting is unavailable; using this session only.', error);
+    }
+    return FONT_FAMILIES.has(saved) ? saved : 'native';
+}
+
+function applyFontFamily(fontFamily, { persist = true } = {}) {
+    const nextFamily = FONT_FAMILIES.has(fontFamily) ? fontFamily : 'native';
+    const cssFamily = FONT_FAMILIES.get(nextFamily);
+    memoryFontFamily = nextFamily;
+
+    if (cssFamily) document.documentElement.style.setProperty('--st-pocket-font-family', cssFamily);
+    else document.documentElement.style.removeProperty('--st-pocket-font-family');
+
+    const setting = document.getElementById('st-pocket-ui-font-family-setting');
+    if (setting) setting.value = nextFamily;
+    if (persist) {
+        try {
+            globalThis.localStorage?.setItem(FONT_FAMILY_STORAGE_KEY, nextFamily);
+        } catch (error) {
+            console.warn('[ST Pocket UI] Font setting could not be persisted; using this session only.', error);
+        }
+    }
+}
+
 function applyExtensionEnabled(enabled, { persist = true } = {}) {
     const nextEnabled = Boolean(enabled);
     memoryExtensionEnabled = nextEnabled;
@@ -232,6 +329,8 @@ function applyExtensionEnabled(enabled, { persist = true } = {}) {
         memoryMessageWidth = applyMessageChoice(MESSAGE_WIDTH_STORAGE_KEY, 'stPocketMessageWidth', savedMessageWidth, VALID_MESSAGE_WIDTHS, 'standard');
         memoryMessageSpacing = applyMessageChoice(MESSAGE_SPACING_STORAGE_KEY, 'stPocketMessageSpacing', savedMessageSpacing, VALID_MESSAGE_SPACINGS, 'standard');
         applyMessageLineHeight(getSavedMessageLineHeight());
+        applyFontFamily(getSavedFontFamily(), { persist: false });
+        applyDefaultBackgroundEnabled(getSavedDefaultBackgroundEnabled(), { persist: false });
     } else {
         delete document.documentElement.dataset.stPocketMode;
         delete document.documentElement.dataset.stPocketLayout;
@@ -240,6 +339,8 @@ function applyExtensionEnabled(enabled, { persist = true } = {}) {
         delete document.documentElement.dataset.stPocketMessageSpacing;
         document.documentElement.style.removeProperty('--st-pocket-message-font-size');
         document.documentElement.style.removeProperty('--st-pocket-message-line-height');
+        document.documentElement.style.removeProperty('--st-pocket-font-family');
+        document.documentElement.classList.remove('st-pocket-default-background');
     }
 
     const setting = document.getElementById('st-pocket-ui-enabled-setting');
@@ -279,6 +380,13 @@ function createExtensionSettings() {
                     </label>
                     <small>關閉後會停用 ST Pocket UI 的主題與響應式版面，設定入口仍會保留。</small>
                 </div>
+                <div class="st-pocket-setting-group st-pocket-enabled-setting">
+                    <label class="checkbox_label" for="st-pocket-ui-floating-button-setting">
+                        <input id="st-pocket-ui-floating-button-setting" type="checkbox">
+                        <span>顯示版面模式懸浮按鈕</span>
+                    </label>
+                    <small>可拖曳蘋果按鈕調整位置；關閉後仍可在下方切換版面模式。</small>
+                </div>
                 <div class="st-pocket-setting-group">
                     <label for="st-pocket-ui-mode-setting">版面模式</label>
                     <select id="st-pocket-ui-mode-setting" class="text_pole">
@@ -295,6 +403,23 @@ function createExtensionSettings() {
                         <option value="2">2 行</option>
                         <option value="3">3 行</option>
                     </select>
+                </div>
+                <div class="st-pocket-setting-group st-pocket-enabled-setting">
+                    <label class="checkbox_label" for="st-pocket-ui-default-background-setting">
+                        <input id="st-pocket-ui-default-background-setting" type="checkbox">
+                        <span>使用本擴充預設背景</span>
+                    </label>
+                    <small>關閉後不再覆蓋背景，改由 SillyTavern 原生背景圖片系統控制。</small>
+                </div>
+                <div class="st-pocket-setting-group">
+                    <label for="st-pocket-ui-font-family-setting">介面字體</label>
+                    <select id="st-pocket-ui-font-family-setting" class="text_pole">
+                        <option value="native">酒館原生</option>
+                        <option value="gensen">源泉圓體</option>
+                        <option value="huninn">jf open 粉圓</option>
+                        <option value="iansui">芫荽</option>
+                    </select>
+                    <small>套用至聊天與操作介面；首次選用開源字體時需要網路載入。</small>
                 </div>
                 <div class="st-pocket-setting-group">
                     <label for="st-pocket-ui-message-font-size-setting">訊息文字大小</label>
@@ -337,12 +462,21 @@ function createExtensionSettings() {
     const enabledSetting = section.querySelector('#st-pocket-ui-enabled-setting');
     enabledSetting.checked = getSavedExtensionEnabled();
     enabledSetting.addEventListener('change', () => applyExtensionEnabled(enabledSetting.checked));
+    const floatingButtonSetting = section.querySelector('#st-pocket-ui-floating-button-setting');
+    floatingButtonSetting.checked = getSavedFloatingButtonEnabled();
+    floatingButtonSetting.addEventListener('change', () => applyFloatingButtonEnabled(floatingButtonSetting.checked));
     const modeSetting = section.querySelector('#st-pocket-ui-mode-setting');
     modeSetting.value = getSavedMode();
     modeSetting.addEventListener('change', () => applyMode(modeSetting.value));
     const inputRowsSetting = section.querySelector('#st-pocket-ui-input-rows-setting');
     inputRowsSetting.value = getSavedInputRows();
     inputRowsSetting.addEventListener('change', () => applyInputRows(inputRowsSetting.value));
+    const defaultBackgroundSetting = section.querySelector('#st-pocket-ui-default-background-setting');
+    defaultBackgroundSetting.checked = getSavedDefaultBackgroundEnabled();
+    defaultBackgroundSetting.addEventListener('change', () => applyDefaultBackgroundEnabled(defaultBackgroundSetting.checked));
+    const fontFamilySetting = section.querySelector('#st-pocket-ui-font-family-setting');
+    fontFamilySetting.value = getSavedFontFamily();
+    fontFamilySetting.addEventListener('change', () => applyFontFamily(fontFamilySetting.value));
     const messageFontSizeSetting = section.querySelector('#st-pocket-ui-message-font-size-setting');
     const savedMessageFontSize = getSavedMessageFontSize();
     messageFontSizeSetting.value = savedMessageFontSize ?? String(MESSAGE_FONT_SIZE_NATIVE);
@@ -369,6 +503,8 @@ function createExtensionSettings() {
     memoryMessageWidth = applyMessageChoice(MESSAGE_WIDTH_STORAGE_KEY, 'stPocketMessageWidth', memoryMessageWidth, VALID_MESSAGE_WIDTHS, 'standard');
     memoryMessageSpacing = applyMessageChoice(MESSAGE_SPACING_STORAGE_KEY, 'stPocketMessageSpacing', memoryMessageSpacing, VALID_MESSAGE_SPACINGS, 'standard');
     applyMessageLineHeight(messageLineHeightSetting.value);
+    applyFontFamily(fontFamilySetting.value, { persist: false });
+    applyDefaultBackgroundEnabled(defaultBackgroundSetting.checked, { persist: false });
 }
 
 function openPocketSettings() {
@@ -398,7 +534,11 @@ function createWandMenuEntry() {
     entry.type = 'button';
     entry.className = 'list-group-item flex-container flexGap5 st-pocket-wand-action interactable';
     entry.setAttribute('aria-label', '開啟 ST Pocket UI 設定');
-    entry.innerHTML = '<i class="fa-fw fa-solid fa-mobile-screen-button extensionsMenuExtensionButton" aria-hidden="true"></i><span>ST Pocket UI</span>';
+    entry.innerHTML = `<svg class="st-pocket-apple-icon extensionsMenuExtensionButton" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M24 17c-4.2-4.2-13-3.2-15.5 4.3-2.4 7.2 2.4 18.8 9 19.7 2.5.3 4.2-1.5 6.5-1.5s4 1.8 6.5 1.5c6.6-.9 11.4-12.5 9-19.7C37 13.8 28.2 12.8 24 17Z"/>
+        <path d="M24 16c-.2-5.5 2.8-9.1 7.8-9.6-.2 4.9-3 8.2-7.8 9.6Z"/>
+        <path d="M24 16c-.4-3-1.8-5.3-4.3-7"/>
+    </svg><span>ST Pocket UI</span>`;
     entry.addEventListener('click', openPocketSettings);
     container.append(entry);
     menu.append(container);
@@ -428,8 +568,9 @@ function createModeSwitcher() {
     toggle.setAttribute('aria-expanded', 'false');
     toggle.innerHTML = `
         <svg class="st-pocket-apple-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-            <path d="M29.4 11.7c2.4-2.9 2.1-6.3 2-7.2-2.9.2-6.2 2-8.1 4.2-1.7 1.9-3.1 4.8-2.7 7.6 3.2.2 6.4-1.6 8.8-4.6Z"/>
-            <path d="M38.3 25.5c0-5.7 4.7-8.5 4.9-8.6-2.7-3.9-6.9-4.4-8.4-4.5-3.6-.4-7 2.1-8.8 2.1-1.9 0-4.7-2-7.7-1.9-4 .1-7.7 2.3-9.8 5.8-4.2 7.2-1.1 17.9 3 23.8 2 2.9 4.3 6.1 7.4 6 3-.1 4.1-1.9 7.7-1.9 3.6 0 4.6 1.9 7.8 1.8 3.2-.1 5.3-2.9 7.2-5.8 2.3-3.3 3.2-6.5 3.2-6.7-.1 0-6.5-2.5-6.5-10.1Z"/>
+            <path d="M24 17c-4.2-4.2-13-3.2-15.5 4.3-2.4 7.2 2.4 18.8 9 19.7 2.5.3 4.2-1.5 6.5-1.5s4 1.8 6.5 1.5c6.6-.9 11.4-12.5 9-19.7C37 13.8 28.2 12.8 24 17Z"/>
+            <path d="M24 16c-.2-5.5 2.8-9.1 7.8-9.6-.2 4.9-3 8.2-7.8 9.6Z"/>
+            <path d="M24 16c-.4-3-1.8-5.3-4.3-7"/>
         </svg>`;
 
     const panel = document.createElement('div');
@@ -437,6 +578,13 @@ function createModeSwitcher() {
     panel.setAttribute('role', 'group');
     panel.setAttribute('aria-label', 'ST Pocket UI 顯示模式');
     panel.hidden = true;
+    panel.innerHTML = `
+        <div class="st-pocket-mode-menu-heading">
+            <span class="st-pocket-mode-menu-kicker">ST Pocket UI</span>
+            <strong>版面模式</strong>
+        </div>
+        <div class="st-pocket-mode-options"></div>`;
+    const modeOptions = panel.querySelector('.st-pocket-mode-options');
 
     const closeMenu = () => {
         panel.hidden = true;
@@ -444,24 +592,99 @@ function createModeSwitcher() {
     };
 
     const modes = [
-        ['auto', '自動'],
-        ['mobile', '手機'],
-        ['desktop', '電腦'],
+        ['auto', '自動', '依視窗寬度切換', 'fa-wand-magic-sparkles'],
+        ['mobile', '手機', '使用單欄觸控版面', 'fa-mobile-screen-button'],
+        ['desktop', '電腦', '保留完整桌面配置', 'fa-display'],
     ];
 
-    for (const [mode, label] of modes) {
+    for (const [mode, label, description, icon] of modes) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'menu_button st-pocket-ui-mode';
         button.dataset.stPocketMode = mode;
-        button.textContent = label;
+        button.innerHTML = `<i class="fa-solid ${icon}" aria-hidden="true"></i><span><strong></strong><small></small></span><i class="fa-solid fa-check st-pocket-mode-check" aria-hidden="true"></i>`;
+        button.querySelector('strong').textContent = label;
+        button.querySelector('small').textContent = description;
         button.addEventListener('click', () => applyMode(mode));
         button.addEventListener('click', closeMenu);
-        panel.append(button);
+        modeOptions.append(button);
     }
 
-    toggle.addEventListener('click', () => {
+    let dragged = false;
+    let dragState = null;
+    const positionMenu = () => {
+        const rect = switcher.getBoundingClientRect();
+        panel.classList.toggle('is-above', rect.top > globalThis.innerHeight / 2);
+        panel.classList.toggle('is-left-aligned', rect.left < globalThis.innerWidth / 2);
+    };
+    const clampPosition = (left, top) => {
+        const margin = 8;
+        const width = switcher.offsetWidth || 48;
+        const height = switcher.offsetHeight || 48;
+        return {
+            left: Math.min(Math.max(margin, left), Math.max(margin, globalThis.innerWidth - width - margin)),
+            top: Math.min(Math.max(margin, top), Math.max(margin, globalThis.innerHeight - height - margin)),
+        };
+    };
+    const applyPosition = (position, { persist = false } = {}) => {
+        if (!position || !Number.isFinite(position.left) || !Number.isFinite(position.top)) return;
+        const next = clampPosition(position.left, position.top);
+        memoryFloatingButtonPosition = next;
+        switcher.style.left = `${next.left}px`;
+        switcher.style.top = `${next.top}px`;
+        switcher.style.right = 'auto';
+        positionMenu();
+        if (persist) {
+            try {
+                globalThis.localStorage?.setItem(FLOATING_BUTTON_POSITION_STORAGE_KEY, JSON.stringify(next));
+            } catch (error) {
+                console.warn('[ST Pocket UI] Floating button position could not be persisted; using this session only.', error);
+            }
+        }
+    };
+    try {
+        const savedPosition = globalThis.localStorage?.getItem(FLOATING_BUTTON_POSITION_STORAGE_KEY);
+        if (savedPosition) memoryFloatingButtonPosition = JSON.parse(savedPosition);
+    } catch (error) {
+        console.warn('[ST Pocket UI] Floating button position is unavailable; using the default position.', error);
+    }
+    if (memoryFloatingButtonPosition) applyPosition(memoryFloatingButtonPosition);
+
+    toggle.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        const rect = switcher.getBoundingClientRect();
+        dragState = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, left: rect.left, top: rect.top };
+        dragged = false;
+        toggle.setPointerCapture?.(event.pointerId);
+    });
+    toggle.addEventListener('pointermove', (event) => {
+        if (!dragState || dragState.pointerId !== event.pointerId) return;
+        const deltaX = event.clientX - dragState.startX;
+        const deltaY = event.clientY - dragState.startY;
+        if (!dragged && Math.hypot(deltaX, deltaY) < 6) return;
+        dragged = true;
+        closeMenu();
+        switcher.classList.add('is-dragging');
+        applyPosition({ left: dragState.left + deltaX, top: dragState.top + deltaY });
+    });
+    const finishDrag = (event) => {
+        if (!dragState || dragState.pointerId !== event.pointerId) return;
+        toggle.releasePointerCapture?.(event.pointerId);
+        dragState = null;
+        switcher.classList.remove('is-dragging');
+        if (dragged && memoryFloatingButtonPosition) applyPosition(memoryFloatingButtonPosition, { persist: true });
+    };
+    toggle.addEventListener('pointerup', finishDrag);
+    toggle.addEventListener('pointercancel', finishDrag);
+    toggle.addEventListener('click', (event) => {
+        if (dragged) {
+            event.preventDefault();
+            event.stopPropagation();
+            dragged = false;
+            return;
+        }
         const opening = panel.hidden;
+        if (opening) positionMenu();
         panel.hidden = !opening;
         toggle.setAttribute('aria-expanded', String(opening));
     });
@@ -473,6 +696,10 @@ function createModeSwitcher() {
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') closeMenu();
     });
+    globalThis.addEventListener?.('resize', () => {
+        if (memoryFloatingButtonPosition) applyPosition(memoryFloatingButtonPosition, { persist: true });
+    });
+    applyFloatingButtonEnabled(getSavedFloatingButtonEnabled(), { persist: false });
     applyMode(getSavedMode());
 }
 
