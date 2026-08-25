@@ -279,7 +279,7 @@ html[data-st-pocket-layout='desktop'] #chat .mes:hover {
 html[data-st-pocket-layout='desktop'] #send_form {
     width: calc(100% - 1rem);
     margin: 0.45rem auto 0.55rem;
-    border: 1px solid var(--st-pocket-border);
+    border: 0;
     border-radius: 1rem;
     background: var(--st-pocket-surface-raised);
     box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 28%);
