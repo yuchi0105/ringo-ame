@@ -58,40 +58,71 @@ html.st-pocket-ui-enabled[data-st-pocket-background='fallback'] body {
     z-index: 10000;
     top: calc(var(--st-pocket-safe-top) + 0.5rem);
     right: calc(var(--st-pocket-safe-right) + 0.5rem);
-    display: flex;
-    gap: 0.2rem;
-    padding: 0.3rem;
-    border: 1px solid var(--st-pocket-border);
-    border-radius: 0.9rem;
-    background: var(--st-pocket-surface);
-    box-shadow: 0 0.65rem 1.8rem rgb(0 0 0 / 28%);
-    backdrop-filter: none;
+    display: block;
 }
 
-.st-pocket-ui-switcher .st-pocket-ui-mode {
-    min-width: 2.75rem;
-    min-height: 2.25rem;
-    padding: 0.35rem 0.55rem;
-    font-size: 0.8rem;
-    border: 0;
+.st-pocket-mode-toggle {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgb(128 67 74 / 34%);
+    border-radius: 50%;
+    color: #fffdf8;
+    background: var(--st-pocket-apple);
+    box-shadow: 0 0.55rem 1.4rem rgb(128 67 74 / 24%);
+    transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.st-pocket-mode-toggle:hover,
+.st-pocket-mode-toggle[aria-expanded='true'] {
+    color: #fffdf8;
+    background: var(--st-pocket-apple-strong);
+    box-shadow: 0 0.7rem 1.6rem rgb(128 67 74 / 32%);
+}
+
+.st-pocket-apple-icon {
+    width: 1.65rem;
+    height: 1.65rem;
+    fill: currentColor;
+}
+
+.st-pocket-mode-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    display: grid;
+    min-width: 9rem;
+    gap: 0.3rem;
+    padding: 0.5rem;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 0.85rem;
+    background: var(--st-pocket-cream-raised);
+    box-shadow: var(--st-pocket-cream-shadow);
+}
+
+.st-pocket-mode-menu[hidden] {
+    display: none;
+}
+
+.st-pocket-mode-menu .st-pocket-ui-mode {
+    min-height: 2.75rem;
+    border: 1px solid transparent;
     border-radius: 0.65rem;
-    color: var(--st-pocket-muted);
+    color: var(--st-pocket-ink);
     background: transparent;
-    transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 
-.st-pocket-ui-switcher .st-pocket-ui-mode:hover {
-    color: var(--st-pocket-apple);
+.st-pocket-mode-menu .st-pocket-ui-mode:hover {
+    border-color: rgb(163 93 99 / 38%);
     background: var(--st-pocket-apple-soft);
 }
 
-.st-pocket-ui-switcher [data-st-pocket-mode='auto'][aria-pressed='true'],
-.st-pocket-ui-switcher [data-st-pocket-mode='mobile'][aria-pressed='true'],
-.st-pocket-ui-switcher [data-st-pocket-mode='desktop'][aria-pressed='true'] {
+.st-pocket-mode-menu .st-pocket-ui-mode[aria-pressed='true'] {
     color: #fffdf8;
+    border-color: var(--st-pocket-apple);
     background: var(--st-pocket-apple);
-    box-shadow: inset 0 0 0 1px rgb(128 67 74 / 45%),
-        0 0.35rem 1rem rgb(128 67 74 / 18%);
 }
 
 .st-pocket-native-launcher {
@@ -973,6 +1004,21 @@ html.st-pocket-ui-enabled :is(
     border-color: var(--st-pocket-cream-border) !important;
     background-color: var(--st-pocket-sage-soft) !important;
     background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+/* These native setting headings have ID-based gradient rules in SillyTavern,
+   so target their real structures explicitly instead of relying on class-only
+   coverage. */
+html.st-pocket-ui-enabled #user-settings-block h4,
+html.st-pocket-ui-enabled #extensions_settings .inline-drawer-toggle.inline-drawer-header,
+html.st-pocket-ui-enabled #extensions_settings2 .inline-drawer-toggle.inline-drawer-header {
+    color: var(--st-pocket-ink-strong) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background: var(--st-pocket-sage-soft) !important;
     box-shadow: none !important;
     text-shadow: none !important;
     filter: none !important;

@@ -421,8 +421,27 @@ function createModeSwitcher() {
     switcher.id = 'st-pocket-ui-switcher';
     switcher.className = 'st-pocket-ui-switcher';
     switcher.dataset.stPocketUi = 'mode-switcher';
-    switcher.setAttribute('role', 'group');
-    switcher.setAttribute('aria-label', 'ST Pocket UI 顯示模式');
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'menu_button st-pocket-mode-toggle';
+    toggle.setAttribute('aria-label', '開啟版面模式選單');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.innerHTML = `
+        <svg class="st-pocket-apple-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <path d="M29.4 11.7c2.4-2.9 2.1-6.3 2-7.2-2.9.2-6.2 2-8.1 4.2-1.7 1.9-3.1 4.8-2.7 7.6 3.2.2 6.4-1.6 8.8-4.6Z"/>
+            <path d="M38.3 25.5c0-5.7 4.7-8.5 4.9-8.6-2.7-3.9-6.9-4.4-8.4-4.5-3.6-.4-7 2.1-8.8 2.1-1.9 0-4.7-2-7.7-1.9-4 .1-7.7 2.3-9.8 5.8-4.2 7.2-1.1 17.9 3 23.8 2 2.9 4.3 6.1 7.4 6 3-.1 4.1-1.9 7.7-1.9 3.6 0 4.6 1.9 7.8 1.8 3.2-.1 5.3-2.9 7.2-5.8 2.3-3.3 3.2-6.5 3.2-6.7-.1 0-6.5-2.5-6.5-10.1Z"/>
+        </svg>`;
+
+    const panel = document.createElement('div');
+    panel.className = 'st-pocket-mode-menu';
+    panel.setAttribute('role', 'group');
+    panel.setAttribute('aria-label', 'ST Pocket UI 顯示模式');
+    panel.hidden = true;
+
+    const closeMenu = () => {
+        panel.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+    };
 
     const modes = [
         ['auto', '自動'],
@@ -437,10 +456,23 @@ function createModeSwitcher() {
         button.dataset.stPocketMode = mode;
         button.textContent = label;
         button.addEventListener('click', () => applyMode(mode));
-        switcher.append(button);
+        button.addEventListener('click', closeMenu);
+        panel.append(button);
     }
 
+    toggle.addEventListener('click', () => {
+        const opening = panel.hidden;
+        panel.hidden = !opening;
+        toggle.setAttribute('aria-expanded', String(opening));
+    });
+    switcher.append(toggle, panel);
     document.body.append(switcher);
+    document.addEventListener('click', (event) => {
+        if (!switcher.contains(event.target)) closeMenu();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeMenu();
+    });
     applyMode(getSavedMode());
 }
 
