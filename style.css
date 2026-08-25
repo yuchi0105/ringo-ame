@@ -8,12 +8,24 @@
     --st-pocket-accent: var(--SmartThemeQuoteColor, #b9a6ff);
     --st-pocket-border: var(--SmartThemeBorderColor, rgb(139 130 152 / 42%));
     --st-pocket-shadow: 0 1rem 2.75rem rgb(0 0 0 / 42%);
+    --st-pocket-cream: #f3eee3;
+    --st-pocket-cream-raised: #fbf8f1;
+    --st-pocket-apple: #a35d63;
+    --st-pocket-apple-soft: #ead8d5;
+    --st-pocket-sage: #87947b;
+    --st-pocket-sage-soft: #dce2d6;
+    --st-pocket-ink: #4a4540;
+    --st-pocket-muted: #756e66;
+    --st-pocket-cream-border: rgb(118 105 91 / 22%);
+    --st-pocket-cream-shadow: 0 0.75rem 2rem rgb(89 70 54 / 14%);
 }
 
 html.st-pocket-ui-enabled,
 html.st-pocket-ui-enabled body {
     min-height: 100%;
-    background-color: var(--SmartThemeBodyColor, #111);
+    color: var(--st-pocket-ink);
+    background-color: var(--st-pocket-cream);
+    text-shadow: none;
 }
 
 html[data-st-pocket-background='fallback'] body {
@@ -139,6 +151,42 @@ html[data-st-pocket-background='fallback'] body {
     opacity: 0.45;
 }
 
+.st-pocket-drawer-mode-section {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    padding: 0.8rem 0 0.2rem;
+    border-top: 1px solid var(--st-pocket-border);
+}
+
+.st-pocket-drawer-mode-label {
+    padding-inline: 0.35rem;
+    color: var(--SmartThemeEmColor, #aaa4b5);
+    font-size: 0.8rem;
+}
+
+.st-pocket-drawer-mode-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+}
+
+.st-pocket-drawer-mode-controls .st-pocket-ui-mode {
+    width: 100%;
+    min-height: 2.75rem;
+    padding-inline: 0.4rem;
+    border: 1px solid transparent;
+    border-radius: 0.7rem;
+    background: transparent;
+    white-space: nowrap;
+    word-break: keep-all;
+}
+
+.st-pocket-drawer-mode-controls .st-pocket-ui-mode[aria-pressed='true'] {
+    border-color: rgb(185 166 255 / 42%);
+    background: rgb(185 166 255 / 18%);
+}
+
 .st-pocket-ui-switcher :focus-visible,
 .st-pocket-native-launcher :focus-visible {
     outline: 2px solid var(--st-pocket-accent);
@@ -146,11 +194,94 @@ html[data-st-pocket-background='fallback'] body {
 }
 
 .st-pocket-ui-settings .inline-drawer-content {
+    display: grid;
     gap: 0.5rem;
+    padding-block: 0.5rem;
+}
+
+.st-pocket-setting-group {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 0.75rem;
+    background: rgb(255 255 255 / 3%);
+}
+
+.st-pocket-setting-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.st-pocket-setting-group > label {
+    font-weight: 600;
+    line-height: 1.35;
 }
 
 .st-pocket-ui-settings small {
     color: var(--SmartThemeEmColor, #aaa4b5);
+}
+
+.st-pocket-ui-settings select.text_pole {
+    min-height: 2.25rem;
+    height: 2.25rem;
+    padding-block: 0.25rem;
+}
+
+.st-pocket-message-font-size-control,
+.st-pocket-message-range-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(4.5rem, auto);
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.st-pocket-message-font-size-control input[type='range'],
+.st-pocket-message-range-control input[type='range'] {
+    width: 100%;
+    min-height: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+}
+
+.st-pocket-message-font-size-control output,
+.st-pocket-message-range-control output {
+    color: var(--SmartThemeBodyColor, #fff);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.st-pocket-message-font-size-control .menu_button {
+    grid-column: 1 / -1;
+    width: fit-content;
+    min-width: 8.5rem;
+    min-height: 2.25rem;
+    padding: 0.3rem 0.8rem;
+    white-space: nowrap;
+}
+
+#st-pocket-ui-wand-entry .extensionsMenuExtensionButton {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    color: var(--st-pocket-ink);
+    border-radius: 0.7rem;
+}
+
+#st-pocket-ui-wand-entry .extensionsMenuExtensionButton:hover,
+#st-pocket-ui-wand-entry .extensionsMenuExtensionButton:focus-visible {
+    color: var(--st-pocket-apple);
+    background: var(--st-pocket-apple-soft);
+}
+
+#st-pocket-ui-wand-entry i {
+    width: 1.25rem;
+    color: var(--st-pocket-apple);
+    text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -163,6 +294,11 @@ html[data-st-pocket-background='fallback'] body {
 
 html[data-st-pocket-layout='mobile'] .st-pocket-native-launcher {
     display: block;
+}
+
+html[data-st-pocket-layout='mobile'] .st-pocket-ui-switcher,
+html[data-st-pocket-layout='mobile'] #top-bar {
+    display: none;
 }
 
 /* Mobile uses Pocket UI's single drawer, while native drawer panels stay intact. */
@@ -188,8 +324,55 @@ html[data-st-pocket-layout='mobile'] #send_form {
 }
 
 html[data-st-pocket-layout='mobile'] #chat {
+    padding-top: 3.75rem;
     padding-inline: clamp(0.5rem, 3vw, 1rem);
     overflow-wrap: anywhere;
+}
+
+/* Keep the native World Info editor within the mobile viewport. */
+html[data-st-pocket-layout='mobile'] #WorldInfo {
+    box-sizing: border-box;
+    width: 100dvw;
+    max-width: 100dvw;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+html[data-st-pocket-layout='mobile'] #WorldInfo #wi-holder,
+html[data-st-pocket-layout='mobile'] #WorldInfo #wiTopBlock,
+html[data-st-pocket-layout='mobile'] #WorldInfo #world_popup,
+html[data-st-pocket-layout='mobile'] #WorldInfo #world_popup > .flex-container,
+html[data-st-pocket-layout='mobile'] #WorldInfo .world_entry,
+html[data-st-pocket-layout='mobile'] #WorldInfo .world_entry_form,
+html[data-st-pocket-layout='mobile'] #WorldInfo .WIEntryContentAndMemo,
+html[data-st-pocket-layout='mobile'] #WorldInfo .world_entry_thin_controls {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+}
+
+html[data-st-pocket-layout='mobile'] #WorldInfo #wiTopBlock {
+    flex-direction: column;
+}
+
+html[data-st-pocket-layout='mobile'] #WorldInfo #world_popup > .flex-container {
+    flex-wrap: wrap;
+}
+
+html[data-st-pocket-layout='mobile'] #WorldInfo #world_editor_select,
+html[data-st-pocket-layout='mobile'] #WorldInfo #world_info_search,
+html[data-st-pocket-layout='mobile'] #WorldInfo #world_info_sort_order,
+html[data-st-pocket-layout='mobile'] #WorldInfo .select2-container,
+html[data-st-pocket-layout='mobile'] #WorldInfo input,
+html[data-st-pocket-layout='mobile'] #WorldInfo select,
+html[data-st-pocket-layout='mobile'] #WorldInfo textarea {
+    max-width: 100%;
+    min-width: 0;
+}
+
+html[data-st-pocket-layout='mobile'] #WorldInfo .WIEntryContentAndMemo,
+html[data-st-pocket-layout='mobile'] #WorldInfo .world_entry_thin_controls {
+    flex-wrap: wrap !important;
 }
 
 html[data-st-pocket-layout='mobile'] .welcomeRecent .recentChat .chatMessage {
@@ -203,6 +386,13 @@ html[data-st-pocket-layout='mobile'] .welcomeRecent .recentChat .chatStats {
 }
 
 html[data-st-pocket-layout='mobile'] #send_form {
+    width: calc(100% - 1rem);
+    min-height: 3.5rem;
+    margin: 0.45rem auto 0.55rem;
+    border: 0;
+    border-radius: 1rem;
+    align-items: center;
+    background: rgb(251 248 241 / 100%);
     padding-right: max(0.35rem, var(--st-pocket-safe-right));
     padding-bottom: max(0.35rem, var(--st-pocket-safe-bottom));
     padding-left: max(0.35rem, var(--st-pocket-safe-left));
@@ -213,12 +403,193 @@ html[data-st-pocket-layout='mobile'] #send_textarea {
     max-height: min(35vh, 15rem);
     max-height: min(35dvh, 15rem);
     font-size: 16px;
+    padding-block: 0.7rem;
 }
 
 html[data-st-pocket-layout='mobile'] :is(#left-nav-panel, #right-nav-panel) {
     max-width: min(92vw, 25rem);
     padding-top: max(0.5rem, var(--st-pocket-safe-top));
     padding-bottom: max(0.5rem, var(--st-pocket-safe-bottom));
+}
+
+/* Cream Apple theme: preserve SillyTavern's chat structure and native icons. */
+html.st-pocket-ui-enabled :is(
+    #top-bar,
+    #left-nav-panel,
+    #right-nav-panel,
+    .drawer-content,
+    .popup,
+    .options-content,
+    #extensionsMenu
+) {
+    color: var(--st-pocket-ink);
+    border-color: var(--st-pocket-cream-border);
+    background-color: var(--st-pocket-cream-raised);
+    text-shadow: none;
+}
+
+html.st-pocket-ui-enabled :is(
+    .text_pole,
+    textarea,
+    input:not([type='range']):not([type='checkbox']):not([type='radio']),
+    select
+) {
+    color: var(--st-pocket-ink);
+    border-color: var(--st-pocket-cream-border);
+    background-color: #fffdf8;
+    text-shadow: none;
+}
+
+html.st-pocket-ui-enabled :is(
+    .menu_button,
+    .list-group-item,
+    .inline-drawer-header
+) {
+    border-color: var(--st-pocket-cream-border);
+    text-shadow: none;
+}
+
+html.st-pocket-ui-enabled :is(
+    #top-settings-holder .drawer-icon,
+    #left-nav-panel .drawer-icon,
+    #right-nav-panel .drawer-icon,
+    .inline-drawer-icon,
+    #extensionsMenu .fa-solid,
+    #extensionsMenu .fa-regular
+) {
+    color: var(--st-pocket-apple);
+    text-shadow: none;
+}
+
+html.st-pocket-ui-enabled #chat {
+    color: var(--st-pocket-ink);
+    background:
+        radial-gradient(circle at 12% 5%, rgb(169 99 104 / 9%), transparent 24rem),
+        linear-gradient(180deg, var(--st-pocket-cream-raised), var(--st-pocket-cream));
+    border-color: var(--st-pocket-cream-border);
+    text-shadow: none;
+}
+
+html.st-pocket-ui-enabled #chat .mes {
+    width: min(100%, var(--st-pocket-message-width, 64rem));
+    margin-inline: auto;
+    margin-block: var(--st-pocket-message-spacing, 0.25rem);
+    color: var(--st-pocket-ink);
+    border: 1px solid transparent;
+    border-radius: 0.9rem;
+    text-shadow: none;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+html.st-pocket-ui-enabled #chat .mes_text {
+    font-size: var(--st-pocket-message-font-size, var(--mainFontSize)) !important;
+    line-height: var(--st-pocket-message-line-height, 1.6);
+    color: #37332f;
+    font-weight: 500;
+    -webkit-font-smoothing: auto;
+    text-rendering: auto;
+    filter: none;
+    opacity: 1;
+}
+
+html[data-st-pocket-message-width='narrow'] {
+    --st-pocket-message-width: 48rem;
+}
+
+html[data-st-pocket-message-width='standard'] {
+    --st-pocket-message-width: 64rem;
+}
+
+html[data-st-pocket-message-width='wide'] {
+    --st-pocket-message-width: 80rem;
+}
+
+html[data-st-pocket-message-spacing='compact'] {
+    --st-pocket-message-spacing: 0.125rem;
+}
+
+html[data-st-pocket-message-spacing='standard'] {
+    --st-pocket-message-spacing: 0.25rem;
+}
+
+html[data-st-pocket-message-spacing='relaxed'] {
+    --st-pocket-message-spacing: 0.625rem;
+}
+
+html.st-pocket-ui-enabled #chat .mes[is_user='true'] {
+    border-color: rgb(163 93 99 / 30%);
+    background: #ead8d5;
+}
+
+html.st-pocket-ui-enabled #chat .mes[is_user='false'] {
+    border-color: rgb(118 105 91 / 22%);
+    background: #fffdf8;
+}
+
+html.st-pocket-ui-enabled #chat .mes.selected {
+    border-color: rgb(169 99 104 / 40%);
+    background: var(--st-pocket-apple-soft);
+}
+
+html.st-pocket-ui-enabled #chat :is(.ch_name, .name_text) {
+    color: var(--st-pocket-apple);
+}
+
+html.st-pocket-ui-enabled #chat :is(.timestamp, .mesIDDisplay, .tokenCounterDisplay) {
+    color: var(--st-pocket-muted);
+}
+
+html.st-pocket-ui-enabled #chat :is(a, q) {
+    color: #85555a;
+}
+
+html.st-pocket-ui-enabled #chat :is(code, pre) {
+    border-color: var(--st-pocket-cream-border);
+    color: var(--st-pocket-ink);
+    background: rgb(135 148 123 / 12%);
+}
+
+html.st-pocket-ui-enabled #send_form {
+    border: 1px solid var(--st-pocket-cream-border);
+    color: var(--st-pocket-ink);
+    background: rgb(251 248 241 / 100%);
+    box-shadow: var(--st-pocket-cream-shadow);
+    text-shadow: none;
+}
+
+html.st-pocket-ui-enabled #send_textarea {
+    color: var(--st-pocket-ink);
+    caret-color: var(--st-pocket-apple);
+    text-shadow: none;
+}
+
+html.st-pocket-ui-enabled #send_textarea::placeholder {
+    color: var(--st-pocket-muted) !important;
+    opacity: 0.82;
+}
+
+html.st-pocket-ui-enabled #send_form:has(#send_textarea:focus-visible) {
+    border-color: var(--st-pocket-sage);
+    outline: 2px solid rgb(135 148 123 / 34%);
+    outline-offset: 2px;
+}
+
+html.st-pocket-ui-enabled #send_form :is(#leftSendForm, #rightSendForm) > div {
+    color: var(--st-pocket-muted);
+    border-radius: 0.65rem;
+    transition: color 140ms ease, background-color 140ms ease, opacity 140ms ease;
+}
+
+html.st-pocket-ui-enabled #send_form :is(#leftSendForm, #rightSendForm) > div:hover,
+html.st-pocket-ui-enabled #send_form :is(#leftSendForm, #rightSendForm) > div:focus-visible {
+    color: var(--st-pocket-apple);
+    background: rgb(169 99 104 / 10%);
+    filter: none;
+}
+
+html.st-pocket-ui-enabled #send_form #send_but {
+    color: var(--st-pocket-apple);
+    background: rgb(169 99 104 / 12%);
 }
 
 html[data-st-pocket-layout='desktop'] .st-pocket-ui-switcher {
@@ -228,10 +599,10 @@ html[data-st-pocket-layout='desktop'] .st-pocket-ui-switcher {
 
 /* Desktop skin: keep SillyTavern's native DOM and behavior, only refine layout. */
 html[data-st-pocket-layout='desktop'] #top-bar {
-    border-bottom: 1px solid var(--st-pocket-border);
-    background: color-mix(in srgb, var(--SmartThemeBlurTintColor, #17151d) 92%, transparent);
-    box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 22%);
-    backdrop-filter: blur(20px) saturate(125%);
+    border-bottom: 1px solid var(--st-pocket-cream-border);
+    background: rgb(251 248 241 / 96%);
+    box-shadow: var(--st-pocket-cream-shadow);
+    backdrop-filter: blur(20px) saturate(110%);
 }
 
 html[data-st-pocket-layout='desktop'] #top-settings-holder {
@@ -253,18 +624,19 @@ html[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-header:hover 
 
 html[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-icon {
     padding: 0;
-    color: var(--SmartThemeBodyColor, #f5f2fa);
+    color: var(--st-pocket-apple);
 }
 
 html[data-st-pocket-layout='desktop'] #chat {
     padding: 0.65rem clamp(1rem, 4vw, 3rem) 1.2rem;
     border-inline: 1px solid var(--st-pocket-border);
-    background: color-mix(in srgb, var(--SmartThemeChatTintColor, #11131a) 94%, transparent);
+    background:
+        radial-gradient(circle at 12% 5%, rgb(169 99 104 / 9%), transparent 24rem),
+        linear-gradient(180deg, var(--st-pocket-cream-raised), var(--st-pocket-cream));
     scrollbar-width: thin;
 }
 
 html[data-st-pocket-layout='desktop'] #chat .mes {
-    margin-block: 0.25rem;
     padding: 0.9rem 0.8rem;
     border: 1px solid transparent;
     border-radius: 0.9rem;
@@ -272,8 +644,8 @@ html[data-st-pocket-layout='desktop'] #chat .mes {
 }
 
 html[data-st-pocket-layout='desktop'] #chat .mes:hover {
-    border-color: var(--st-pocket-border);
-    background: rgb(255 255 255 / 2.5%);
+    border-color: rgb(169 99 104 / 24%);
+    background-color: rgb(251 248 241 / 88%);
 }
 
 html[data-st-pocket-layout='desktop'] #send_form {
@@ -281,14 +653,27 @@ html[data-st-pocket-layout='desktop'] #send_form {
     margin: 0.45rem auto 0.55rem;
     border: 0;
     border-radius: 1rem;
-    background: var(--st-pocket-surface-raised);
-    box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 28%);
+    min-height: 3.5rem;
+    align-items: center;
+    background: rgb(251 248 241 / 100%);
+    box-shadow: var(--st-pocket-cream-shadow);
     backdrop-filter: blur(20px) saturate(125%);
 }
 
 html[data-st-pocket-layout='desktop'] #send_textarea {
     min-height: 2.75rem;
     padding-block: 0.7rem;
+}
+
+@media (max-width: 560px) {
+    .st-pocket-setting-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .st-pocket-message-font-size-control,
+    .st-pocket-message-range-control {
+        grid-template-columns: minmax(0, 1fr) 4.25rem;
+    }
 }
 
 /* User-selected composer height must win over the mobile and desktop defaults. */
