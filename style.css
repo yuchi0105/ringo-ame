@@ -518,9 +518,7 @@ html.st-pocket-ui-enabled :is(
 
 html.st-pocket-ui-enabled #chat {
     color: var(--st-pocket-ink);
-    background:
-        radial-gradient(circle at 12% 5%, rgb(169 99 104 / 9%), transparent 24rem),
-        linear-gradient(180deg, var(--st-pocket-cream-raised), var(--st-pocket-cream));
+    background: var(--st-pocket-cream);
     border-color: var(--st-pocket-cream-border);
     text-shadow: none;
 }
@@ -685,9 +683,7 @@ html[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-icon {
 html[data-st-pocket-layout='desktop'] #chat {
     padding: 0.65rem clamp(1rem, 4vw, 3rem) 1.2rem;
     border-inline: 1px solid var(--st-pocket-border);
-    background:
-        radial-gradient(circle at 12% 5%, rgb(169 99 104 / 9%), transparent 24rem),
-        linear-gradient(180deg, var(--st-pocket-cream-raised), var(--st-pocket-cream));
+    background: var(--st-pocket-cream);
     scrollbar-width: thin;
 }
 
@@ -742,4 +738,151 @@ html[data-st-pocket-input-rows='2'] #send_textarea {
 
 html[data-st-pocket-input-rows='3'] #send_textarea {
     min-height: 5.75rem;
+}
+
+/* Native SillyTavern menus use highly specific theme rules. Keep every menu
+   opaque and readable while Pocket UI is enabled, without changing native DOM. */
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) {
+    color: var(--st-pocket-ink) !important;
+    background: var(--st-pocket-cream-raised) !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :is(
+    .inline-drawer-header,
+    .drawer-header,
+    .menu_button,
+    .list-group-item,
+    button,
+    label,
+    legend,
+    h1,
+    h2,
+    h3,
+    h4,
+    p,
+    span,
+    small,
+    i
+) {
+    color: var(--st-pocket-ink) !important;
+    text-shadow: none !important;
+    filter: none !important;
+    opacity: 1;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :is(.inline-drawer-header, .drawer-header, .menu_button, .list-group-item, button) {
+    border-color: var(--st-pocket-cream-border) !important;
+    background: #fffdf8 !important;
+    background-image: none !important;
+    box-shadow: none;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :is(.inline-drawer-header, .drawer-header, .menu_button, .list-group-item, button):hover:not(:disabled) {
+    color: #63363b !important;
+    border-color: rgb(163 93 99 / 52%) !important;
+    background: var(--st-pocket-apple-soft) !important;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :is(.inline-drawer-header, .drawer-header, .menu_button, .list-group-item, button):focus-visible {
+    outline: 2px solid var(--st-pocket-apple) !important;
+    outline-offset: 2px;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :is(input, textarea, select, .text_pole, .select2-selection) {
+    color: var(--st-pocket-ink) !important;
+    border-color: var(--st-pocket-cream-border) !important;
+    background: #fffdf8 !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    opacity: 1;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :is(input, textarea)::placeholder {
+    color: #6b645d !important;
+    opacity: 1;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :disabled {
+    color: #756e66 !important;
+    opacity: 0.7 !important;
+}
+
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+) :is(.inline-drawer-icon, .drawer-icon, .fa-solid, .fa-regular) {
+    color: var(--st-pocket-apple) !important;
+}
+
+html.st-pocket-ui-enabled body,
+html.st-pocket-ui-enabled button,
+html.st-pocket-ui-enabled input,
+html.st-pocket-ui-enabled textarea,
+html.st-pocket-ui-enabled select {
+    -webkit-font-smoothing: auto;
+    text-rendering: optimizeLegibility;
 }
