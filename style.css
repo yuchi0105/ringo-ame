@@ -438,13 +438,6 @@ html.st-pocket-ui-enabled.st-pocket-default-background #bg2 {
     text-shadow: none;
 }
 
-#st-pocket-ui-settings > .inline-drawer > .inline-drawer-toggle {
-    color: var(--st-pocket-ink-strong) !important;
-    border-color: var(--st-pocket-cream-border) !important;
-    background: var(--st-pocket-cream-raised) !important;
-    background-image: none !important;
-}
-
 #st-pocket-ui-settings :is(input, select, .text_pole, button.menu_button, .st-pocket-file-button) {
     color: var(--st-pocket-ink-strong) !important;
     border: 1px solid var(--st-pocket-cream-border) !important;
@@ -1182,17 +1175,6 @@ html[data-st-pocket-layout='mobile'] body {
     padding-left: var(--st-pocket-safe-left);
 }
 
-/* Opening Pocket UI's launcher must not replace the current chat/home
-   wallpaper with SillyTavern's default body surface. The menu itself remains
-   opaque; only the page behind its scrim stays visible. */
-html[data-st-pocket-layout='mobile'][data-st-pocket-menu='open'] :is(body, #sheld) {
-    background-color: transparent !important;
-}
-
-html[data-st-pocket-layout='mobile'][data-st-pocket-menu='open'] :is(#bg1, #bg2) {
-    visibility: visible !important;
-}
-
 html[data-st-pocket-layout='mobile'] #chat,
 html[data-st-pocket-layout='mobile'] #send_form {
     width: 100%;
@@ -1850,7 +1832,7 @@ html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header {
     top: 3.65rem;
     left: 50%;
     display: grid;
-    grid-template-columns: 2.5rem 2.5rem minmax(8rem, 12rem) minmax(10rem, 18rem) auto;
+    grid-template-columns: 2.5rem minmax(8rem, 12rem) minmax(10rem, 18rem) auto;
     align-items: center;
     gap: 0.5rem;
     width: min(42rem, calc(100vw - 2rem));
@@ -1873,10 +1855,6 @@ html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header.is-dragging {
 }
 
 .st-pocket-chat-bar-drag-handle {
-    display: none;
-}
-
-.st-pocket-chat-bar-collapse {
     display: none;
 }
 
@@ -1909,35 +1887,12 @@ html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-drag-handle svg {
     height: 1rem;
 }
 
-html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-collapse {
-    display: inline-grid;
-    width: 2.5rem;
-    min-width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    place-items: center;
-    border: 0;
-    border-radius: 0.7rem;
-    color: var(--st-pocket-muted);
-    background: transparent;
-}
-
-html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-collapse:is(:hover, :focus-visible) {
-    color: var(--st-pocket-apple-strong);
-    background: var(--st-pocket-apple-soft);
-}
-
-html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-collapse svg {
-    width: 1rem;
-    height: 1rem;
-}
-
 html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header.is-collapsed {
-    grid-template-columns: 2.5rem 2.5rem;
+    grid-template-columns: 2.5rem;
     width: auto;
 }
 
-html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header.is-collapsed > :not(.st-pocket-chat-bar-drag-handle, .st-pocket-chat-bar-collapse) {
+html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header.is-collapsed > :not(.st-pocket-chat-bar-drag-handle) {
     display: none !important;
 }
 
@@ -2286,21 +2241,10 @@ html.st-pocket-ui-enabled :is(
 }
 
 html.st-pocket-ui-enabled body,
-html.st-pocket-ui-enabled body *:not(#chat .mes_text *),
-html.st-pocket-ui-enabled button:not(#chat .mes_text *),
-html.st-pocket-ui-enabled input:not(#chat .mes_text *),
-html.st-pocket-ui-enabled textarea:not(#chat .mes_text *),
-html.st-pocket-ui-enabled select:not(#chat .mes_text *) {
+html.st-pocket-ui-enabled body * {
     -webkit-font-smoothing: subpixel-antialiased;
     -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
-    text-shadow: none !important;
-}
-
-/* Mobile must fully neutralize legacy SillyTavern theme shadows, including
-   message-renderer descendants that are intentionally exempt on desktop. */
-html.st-pocket-ui-enabled[data-st-pocket-layout='mobile'] body,
-html.st-pocket-ui-enabled[data-st-pocket-layout='mobile'] body * {
     text-shadow: none !important;
 }
 
@@ -2377,19 +2321,6 @@ html.st-pocket-ui-enabled #extensions_settings2 .inline-drawer-toggle.inline-dra
     text-shadow: none !important;
     filter: none !important;
     opacity: 1 !important;
-}
-
-/* Pocket UI uses the same native extension-container and inline-drawer
-   dimensions as its siblings. Only normalize the custom Lucide chevron. */
-html.st-pocket-ui-enabled #st-pocket-ui-settings > .inline-drawer > .inline-drawer-toggle .inline-drawer-icon {
-    width: 1rem !important;
-    min-width: 1rem !important;
-    height: 1rem !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    flex: 0 0 1rem;
-    font-size: 1rem !important;
-    line-height: 1 !important;
 }
 
 html.st-pocket-ui-enabled :is(

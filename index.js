@@ -628,7 +628,7 @@ function createExtensionSettings() {
         <div class="inline-drawer">
             <div class="inline-drawer-toggle inline-drawer-header">
                 <b>ST Pocket UI</b>
-                ${lucideIcon('chevronDown', 'inline-drawer-icon down')}
+                <i class="inline-drawer-icon fa-solid fa-circle-chevron-down down" aria-hidden="true"></i>
             </div>
             <div class="inline-drawer-content">
                 <div class="st-pocket-setting-group st-pocket-enabled-setting">
@@ -1118,17 +1118,10 @@ function createNativeDrawerLauncher() {
     const dragHandle = document.createElement('button');
     dragHandle.type = 'button';
     dragHandle.className = 'st-pocket-chat-bar-drag-handle';
-    dragHandle.innerHTML = lucideIcon('menu');
-    dragHandle.setAttribute('aria-label', '移動聊天工具列');
-    dragHandle.title = '拖曳移動；方向鍵微調；雙擊復位';
-
-    const collapseButton = document.createElement('button');
-    collapseButton.type = 'button';
-    collapseButton.className = 'st-pocket-chat-bar-collapse';
-    collapseButton.innerHTML = lucideIcon('chevronUp');
-    collapseButton.setAttribute('aria-label', '收合聊天工具列');
-    collapseButton.setAttribute('aria-expanded', 'true');
-    collapseButton.title = '收合聊天工具列';
+    dragHandle.innerHTML = lucideIcon('chevronUp');
+    dragHandle.setAttribute('aria-label', '收合聊天工具列；拖曳可移動');
+    dragHandle.setAttribute('aria-expanded', 'true');
+    dragHandle.title = '點擊收合；拖曳移動；方向鍵微調；雙擊復位';
 
     const identity = document.createElement('button');
     identity.type = 'button';
@@ -1287,15 +1280,15 @@ function createNativeDrawerLauncher() {
         searchInput.focus();
     });
 
-    mobileHeader.append(dragHandle, collapseButton, identity, search, contextStats, launcher);
+    mobileHeader.append(dragHandle, identity, search, contextStats, launcher);
     document.body.append(scrim, mobileHeader, chatActions, menu, latestButton);
 
     const applyChatBarCollapsed = (collapsed, { persist = true } = {}) => {
         mobileHeader.classList.toggle('is-collapsed', collapsed);
-        collapseButton.innerHTML = lucideIcon(collapsed ? 'chevronDown' : 'chevronUp');
-        collapseButton.setAttribute('aria-label', collapsed ? '打開聊天工具列' : '收合聊天工具列');
-        collapseButton.setAttribute('aria-expanded', String(!collapsed));
-        collapseButton.title = collapsed ? '打開聊天工具列' : '收合聊天工具列';
+        dragHandle.innerHTML = lucideIcon(collapsed ? 'chevronDown' : 'chevronUp');
+        dragHandle.setAttribute('aria-label', `${collapsed ? '打開' : '收合'}聊天工具列；拖曳可移動`);
+        dragHandle.setAttribute('aria-expanded', String(!collapsed));
+        dragHandle.title = `點擊${collapsed ? '打開' : '收合'}；拖曳移動；方向鍵微調；雙擊復位`;
         if (persist) {
             try {
                 localStorage.setItem(DESKTOP_CHAT_BAR_COLLAPSED_STORAGE_KEY, String(collapsed));
@@ -1309,11 +1302,8 @@ function createNativeDrawerLauncher() {
     } catch {
         applyChatBarCollapsed(false, { persist: false });
     }
-    collapseButton.addEventListener('click', () => {
-        applyChatBarCollapsed(!mobileHeader.classList.contains('is-collapsed'));
-    });
-
     let chatBarDrag = null;
+    let chatBarDidDrag = false;
     const clampChatBarPosition = ({ left, top }) => {
         const rect = mobileHeader.getBoundingClientRect();
         return {
@@ -1356,12 +1346,15 @@ function createNativeDrawerLauncher() {
         if (document.documentElement.dataset.stPocketLayout !== 'desktop' || event.button !== 0) return;
         const rect = mobileHeader.getBoundingClientRect();
         chatBarDrag = { pointerId: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+        chatBarDidDrag = false;
         dragHandle.setPointerCapture?.(event.pointerId);
-        mobileHeader.classList.add('is-dragging');
-        event.preventDefault();
     });
     dragHandle.addEventListener('pointermove', (event) => {
         if (!chatBarDrag || chatBarDrag.pointerId !== event.pointerId) return;
+        const rect = mobileHeader.getBoundingClientRect();
+        if (!chatBarDidDrag && Math.hypot(event.clientX - (rect.left + chatBarDrag.offsetX), event.clientY - (rect.top + chatBarDrag.offsetY)) < 5) return;
+        chatBarDidDrag = true;
+        mobileHeader.classList.add('is-dragging');
         applyChatBarPosition({ left: event.clientX - chatBarDrag.offsetX, top: event.clientY - chatBarDrag.offsetY });
     });
     const finishChatBarDrag = (event) => {
@@ -1369,11 +1362,21 @@ function createNativeDrawerLauncher() {
         dragHandle.releasePointerCapture?.(event.pointerId);
         chatBarDrag = null;
         mobileHeader.classList.remove('is-dragging');
-        const rect = mobileHeader.getBoundingClientRect();
-        applyChatBarPosition({ left: rect.left, top: rect.top }, true);
+        if (chatBarDidDrag) {
+            const rect = mobileHeader.getBoundingClientRect();
+            applyChatBarPosition({ left: rect.left, top: rect.top }, true);
+        }
     };
     dragHandle.addEventListener('pointerup', finishChatBarDrag);
     dragHandle.addEventListener('pointercancel', finishChatBarDrag);
+    dragHandle.addEventListener('click', (event) => {
+        if (chatBarDidDrag) {
+            event.preventDefault();
+            chatBarDidDrag = false;
+            return;
+        }
+        applyChatBarCollapsed(!mobileHeader.classList.contains('is-collapsed'));
+    });
     dragHandle.addEventListener('dblclick', resetChatBarPosition);
     dragHandle.addEventListener('keydown', (event) => {
         if (document.documentElement.dataset.stPocketLayout !== 'desktop') return;
