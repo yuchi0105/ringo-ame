@@ -63,9 +63,9 @@ html.st-pocket-ui-enabled {
     --SmartThemeBodyColor: var(--st-pocket-ink) !important;
     --SmartThemeEmColor: var(--st-pocket-apple-strong) !important;
     --SmartThemeQuoteColor: #64705c !important;
-    --SmartThemeBlurTintColor: var(--st-pocket-cream-raised) !important;
+    --SmartThemeBlurTintColor: rgb(251 248 241 / 62%) !important;
     --SmartThemeBorderColor: var(--st-pocket-cream-border) !important;
-    --SmartThemeBlurStrength: 0px !important;
+    --SmartThemeBlurStrength: 12px !important;
     --black30a: rgb(74 69 64 / 10%) !important;
     --black50a: rgb(74 69 64 / 16%) !important;
     --white30a: rgb(163 93 99 / 14%) !important;
@@ -1187,7 +1187,10 @@ html[data-st-pocket-layout='mobile'] body {
    opaque; only the page behind its scrim stays visible. */
 html[data-st-pocket-layout='mobile'][data-st-pocket-menu='open'] :is(body, #sheld) {
     background-color: transparent !important;
-    background-image: none !important;
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-menu='open'] :is(#bg1, #bg2) {
+    visibility: visible !important;
 }
 
 html[data-st-pocket-layout='mobile'] #chat,
@@ -1455,8 +1458,10 @@ html.st-pocket-ui-enabled :is(
 
 html.st-pocket-ui-enabled #chat {
     color: var(--st-pocket-ink);
-    background: var(--st-pocket-cream);
+    background: rgb(251 248 241 / 58%);
     border-color: var(--st-pocket-cream-border);
+    -webkit-backdrop-filter: blur(var(--SmartThemeBlurStrength, 12px));
+    backdrop-filter: blur(var(--SmartThemeBlurStrength, 12px));
     text-shadow: none;
 }
 
@@ -1845,7 +1850,7 @@ html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header {
     top: 3.65rem;
     left: 50%;
     display: grid;
-    grid-template-columns: minmax(8rem, 12rem) minmax(10rem, 18rem) auto;
+    grid-template-columns: 2.5rem minmax(8rem, 12rem) minmax(10rem, 18rem) auto;
     align-items: center;
     gap: 0.5rem;
     width: min(42rem, calc(100vw - 2rem));
@@ -1855,6 +1860,49 @@ html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header {
     background: rgb(251 248 241 / 96%);
     box-shadow: var(--st-pocket-cream-shadow);
     transform: translateX(-50%);
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header.is-user-positioned {
+    top: var(--st-pocket-chat-bar-top);
+    left: var(--st-pocket-chat-bar-left);
+    transform: none;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header.is-dragging {
+    user-select: none;
+}
+
+.st-pocket-chat-bar-drag-handle {
+    display: none;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-drag-handle {
+    display: inline-grid;
+    width: 2.5rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 0.7rem;
+    color: var(--st-pocket-muted);
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-drag-handle:active {
+    cursor: grabbing;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-drag-handle:is(:hover, :focus-visible) {
+    color: var(--st-pocket-apple-strong);
+    background: var(--st-pocket-apple-soft);
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-bar-drag-handle svg {
+    width: 1rem;
+    height: 1rem;
 }
 
 html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header .st-pocket-native-launcher {
@@ -1997,7 +2045,7 @@ html[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-icon {
 html[data-st-pocket-layout='desktop'] #chat {
     padding: 0.65rem clamp(1rem, 4vw, 3rem) 1.2rem;
     border-inline: 1px solid var(--st-pocket-border);
-    background: var(--st-pocket-cream);
+    background: rgb(251 248 241 / 58%);
     scrollbar-width: thin;
 }
 
@@ -2305,6 +2353,18 @@ html.st-pocket-ui-enabled #st-pocket-ui-settings > .inline-drawer > .inline-draw
     justify-content: space-between;
     gap: 0.5rem;
     border-radius: 0.65rem !important;
+    box-sizing: border-box;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: inherit !important;
+    line-height: 1.25 !important;
+}
+
+html.st-pocket-ui-enabled #st-pocket-ui-settings {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 html.st-pocket-ui-enabled #st-pocket-ui-settings > .inline-drawer > .inline-drawer-toggle .inline-drawer-icon {
@@ -2501,7 +2561,28 @@ html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer
 }
 
 html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder :is(.drawer, .drawer-header, .drawer-toggle, .drawer-icon) {
+    border: 0 !important;
     border-color: transparent !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+
+
+html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder :is(
+    .drawer,
+    .drawer-header,
+    .drawer-toggle,
+    .drawer-icon
+):is(:hover, :active, :focus, :focus-visible, .open, .active) {
+    border: 0 !important;
+    border-color: transparent !important;
+    outline-color: transparent !important;
+    box-shadow: none !important;
+}
+
+html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-icon::before,
+html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder .drawer-icon::after {
+    border: 0 !important;
     outline: 0 !important;
     box-shadow: none !important;
 }

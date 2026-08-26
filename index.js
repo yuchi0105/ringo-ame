@@ -11,6 +11,7 @@ const MESSAGE_LINE_HEIGHT_STORAGE_KEY = 'st-pocket-ui-message-line-height';
 const EXTENSION_ENABLED_STORAGE_KEY = 'st-pocket-ui-enabled';
 const FLOATING_BUTTON_ENABLED_STORAGE_KEY = 'st-pocket-ui-floating-button-enabled';
 const FLOATING_BUTTON_POSITION_STORAGE_KEY = 'st-pocket-ui-floating-button-position';
+const DESKTOP_CHAT_BAR_POSITION_STORAGE_KEY = 'st-pocket-ui-desktop-chat-bar-position';
 const DEFAULT_BACKGROUND_ENABLED_STORAGE_KEY = 'st-pocket-ui-default-background-enabled';
 const FONT_FAMILY_STORAGE_KEY = 'st-pocket-ui-font-family';
 const THEME_STORAGE_KEY = 'st-pocket-ui-theme';
@@ -1113,6 +1114,13 @@ function createNativeDrawerLauncher() {
     mobileHeader.className = 'st-pocket-mobile-header';
     mobileHeader.dataset.stPocketUi = 'mobile-header';
 
+    const dragHandle = document.createElement('button');
+    dragHandle.type = 'button';
+    dragHandle.className = 'st-pocket-chat-bar-drag-handle';
+    dragHandle.innerHTML = lucideIcon('menu');
+    dragHandle.setAttribute('aria-label', '移動聊天工具列');
+    dragHandle.title = '拖曳移動；方向鍵微調；雙擊復位';
+
     const identity = document.createElement('button');
     identity.type = 'button';
     identity.className = 'st-pocket-chat-identity';
@@ -1270,8 +1278,89 @@ function createNativeDrawerLauncher() {
         searchInput.focus();
     });
 
-    mobileHeader.append(identity, search, contextStats, launcher);
+    mobileHeader.append(dragHandle, identity, search, contextStats, launcher);
     document.body.append(scrim, mobileHeader, chatActions, menu, latestButton);
+
+    let chatBarDrag = null;
+    const clampChatBarPosition = ({ left, top }) => {
+        const rect = mobileHeader.getBoundingClientRect();
+        return {
+            left: Math.min(Math.max(8, left), Math.max(8, globalThis.innerWidth - rect.width - 8)),
+            top: Math.min(Math.max(8, top), Math.max(8, globalThis.innerHeight - rect.height - 8)),
+        };
+    };
+    const applyChatBarPosition = (position, persist = false) => {
+        const next = clampChatBarPosition(position);
+        mobileHeader.style.setProperty('--st-pocket-chat-bar-left', `${next.left}px`);
+        mobileHeader.style.setProperty('--st-pocket-chat-bar-top', `${next.top}px`);
+        mobileHeader.classList.add('is-user-positioned');
+        if (persist) {
+            try {
+                localStorage.setItem(DESKTOP_CHAT_BAR_POSITION_STORAGE_KEY, JSON.stringify(next));
+            } catch {
+                // Keep dragging functional when storage is unavailable.
+            }
+        }
+    };
+    const resetChatBarPosition = () => {
+        mobileHeader.classList.remove('is-user-positioned');
+        mobileHeader.style.removeProperty('--st-pocket-chat-bar-left');
+        mobileHeader.style.removeProperty('--st-pocket-chat-bar-top');
+        try {
+            localStorage.removeItem(DESKTOP_CHAT_BAR_POSITION_STORAGE_KEY);
+        } catch {
+            // The visual reset still works when storage is unavailable.
+        }
+    };
+    try {
+        const savedPosition = JSON.parse(localStorage.getItem(DESKTOP_CHAT_BAR_POSITION_STORAGE_KEY));
+        if (Number.isFinite(savedPosition?.left) && Number.isFinite(savedPosition?.top)) {
+            requestAnimationFrame(() => applyChatBarPosition(savedPosition));
+        }
+    } catch {
+        // Ignore malformed or unavailable persisted state and use the default position.
+    }
+    dragHandle.addEventListener('pointerdown', (event) => {
+        if (document.documentElement.dataset.stPocketLayout !== 'desktop' || event.button !== 0) return;
+        const rect = mobileHeader.getBoundingClientRect();
+        chatBarDrag = { pointerId: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+        dragHandle.setPointerCapture?.(event.pointerId);
+        mobileHeader.classList.add('is-dragging');
+        event.preventDefault();
+    });
+    dragHandle.addEventListener('pointermove', (event) => {
+        if (!chatBarDrag || chatBarDrag.pointerId !== event.pointerId) return;
+        applyChatBarPosition({ left: event.clientX - chatBarDrag.offsetX, top: event.clientY - chatBarDrag.offsetY });
+    });
+    const finishChatBarDrag = (event) => {
+        if (!chatBarDrag || chatBarDrag.pointerId !== event.pointerId) return;
+        dragHandle.releasePointerCapture?.(event.pointerId);
+        chatBarDrag = null;
+        mobileHeader.classList.remove('is-dragging');
+        const rect = mobileHeader.getBoundingClientRect();
+        applyChatBarPosition({ left: rect.left, top: rect.top }, true);
+    };
+    dragHandle.addEventListener('pointerup', finishChatBarDrag);
+    dragHandle.addEventListener('pointercancel', finishChatBarDrag);
+    dragHandle.addEventListener('dblclick', resetChatBarPosition);
+    dragHandle.addEventListener('keydown', (event) => {
+        if (document.documentElement.dataset.stPocketLayout !== 'desktop') return;
+        if (event.key === 'Home') {
+            resetChatBarPosition();
+            event.preventDefault();
+            return;
+        }
+        const movement = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[event.key];
+        if (!movement) return;
+        const rect = mobileHeader.getBoundingClientRect();
+        applyChatBarPosition({ left: rect.left + movement[0], top: rect.top + movement[1] }, true);
+        event.preventDefault();
+    });
+    globalThis.addEventListener('resize', () => {
+        if (!mobileHeader.classList.contains('is-user-positioned')) return;
+        const rect = mobileHeader.getBoundingClientRect();
+        applyChatBarPosition({ left: rect.left, top: rect.top }, true);
+    });
     syncChatIdentity();
     const chatObserver = new MutationObserver(() => {
         syncChatIdentity();
