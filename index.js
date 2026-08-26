@@ -14,6 +14,7 @@ const FLOATING_BUTTON_POSITION_STORAGE_KEY = 'st-pocket-ui-floating-button-posit
 const DEFAULT_BACKGROUND_ENABLED_STORAGE_KEY = 'st-pocket-ui-default-background-enabled';
 const FONT_FAMILY_STORAGE_KEY = 'st-pocket-ui-font-family';
 const THEME_STORAGE_KEY = 'st-pocket-ui-theme';
+const GENERATION_ANIMATION_ENABLED_STORAGE_KEY = 'st-pocket-ui-generation-animation-enabled';
 const VALID_MODES = new Set(['auto', 'mobile', 'desktop']);
 const VALID_INPUT_ROWS = new Set(['1', '2', '3']);
 const VALID_MESSAGE_WIDTHS = new Set(['narrow', 'standard', 'wide']);
@@ -48,6 +49,8 @@ const LUCIDE_ICONS = {
     check: '<path d="m20 6-11 11-5-5"/>',
     chevronDown: '<path d="m6 9 6 6 6-6"/>',
     chevronUp: '<path d="m18 15-6-6-6 6"/>',
+    arrowDown: '<path d="M12 5v14M19 12l-7 7-7-7"/>',
+    hash: '<line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/>',
     desktop: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
     menu: '<line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/>',
     mobile: '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
@@ -81,6 +84,36 @@ let memoryFloatingButtonPosition = null;
 let memoryDefaultBackgroundEnabled = true;
 let memoryFontFamily = 'native';
 let memoryTheme = 'cream-apple';
+let memoryGenerationAnimationEnabled = true;
+
+function getSavedGenerationAnimationEnabled() {
+    try {
+        const stored = globalThis.localStorage?.getItem(GENERATION_ANIMATION_ENABLED_STORAGE_KEY);
+        return stored === null ? memoryGenerationAnimationEnabled : stored !== 'false';
+    } catch (error) {
+        console.warn('[ST Pocket UI] Generation animation setting is unavailable; using this session only.', error);
+        return memoryGenerationAnimationEnabled;
+    }
+}
+
+function applyGenerationAnimationEnabled(enabled, { persist = true } = {}) {
+    const nextEnabled = Boolean(enabled);
+    memoryGenerationAnimationEnabled = nextEnabled;
+    const animation = document.getElementById('st-pocket-generation-animation');
+    if (animation) {
+        animation.hidden = !nextEnabled;
+        if (!nextEnabled) animation.classList.remove('is-active');
+    }
+    const setting = document.getElementById('st-pocket-ui-generation-animation-setting');
+    if (setting) setting.checked = nextEnabled;
+    if (persist) {
+        try {
+            globalThis.localStorage?.setItem(GENERATION_ANIMATION_ENABLED_STORAGE_KEY, String(nextEnabled));
+        } catch (error) {
+            console.warn('[ST Pocket UI] Generation animation setting could not be persisted; using this session only.', error);
+        }
+    }
+}
 
 const supportsPersonaThumbnails = getThumbnailUrl('persona', 'st-pocket-probe.png', true).includes('&t=');
 
@@ -689,6 +722,17 @@ function createExtensionSettings() {
             </div>
         </div>`;
 
+    const generationAnimationGroup = document.createElement('div');
+    generationAnimationGroup.className = 'st-pocket-setting-group st-pocket-enabled-setting';
+    generationAnimationGroup.innerHTML = `
+        <label class="checkbox_label" for="st-pocket-ui-generation-animation-setting">
+            <input id="st-pocket-ui-generation-animation-setting" type="checkbox">
+            <span>訊息生成動態效果</span>
+        </label>
+        <small>生成訊息時，在輸入列顯示目前主題的動態圖示；關閉後不顯示任何圖案。</small>`;
+    const modeGroup = section.querySelector('#st-pocket-ui-mode-setting')?.closest('.st-pocket-setting-group');
+    modeGroup?.before(generationAnimationGroup);
+
     const enabledSetting = section.querySelector('#st-pocket-ui-enabled-setting');
     enabledSetting.checked = getSavedExtensionEnabled();
     enabledSetting.addEventListener('change', () => applyExtensionEnabled(enabledSetting.checked));
@@ -698,6 +742,9 @@ function createExtensionSettings() {
     const floatingButtonSetting = section.querySelector('#st-pocket-ui-floating-button-setting');
     floatingButtonSetting.checked = getSavedFloatingButtonEnabled();
     floatingButtonSetting.addEventListener('change', () => applyFloatingButtonEnabled(floatingButtonSetting.checked));
+    const generationAnimationSetting = section.querySelector('#st-pocket-ui-generation-animation-setting');
+    generationAnimationSetting.checked = getSavedGenerationAnimationEnabled();
+    generationAnimationSetting.addEventListener('change', () => applyGenerationAnimationEnabled(generationAnimationSetting.checked));
     const modeSetting = section.querySelector('#st-pocket-ui-mode-setting');
     modeSetting.value = getSavedMode();
     modeSetting.addEventListener('change', () => applyMode(modeSetting.value));
@@ -1078,6 +1125,7 @@ function createNativeDrawerLauncher() {
     identity.append(avatar, title);
 
     const chatActions = createChatActions(identity);
+    const latestButton = createReturnToLatestButton();
 
     const search = document.createElement('div');
     search.className = 'st-pocket-chat-search';
@@ -1147,16 +1195,6 @@ function createNativeDrawerLauncher() {
             message.classList.remove('st-pocket-search-current', 'st-pocket-search-reveal');
         });
     };
-    const ensureMessageLoaded = async (messageId) => {
-        let target = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
-        if (target) return target;
-        const firstDisplayedId = Number(document.querySelector('#chat .mes')?.getAttribute('mesid'));
-        if (!Number.isNaN(firstDisplayedId) && messageId < firstDisplayedId) {
-            await showMoreMessages(firstDisplayedId - messageId);
-            target = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
-        }
-        return target;
-    };
     const updateSearchControls = () => {
         const count = searchState.results.length;
         searchStatus.value = count ? `${searchState.activeIndex + 1} / ${count}` : (searchInput.value.trim() ? '無結果' : '');
@@ -1173,7 +1211,7 @@ function createNativeDrawerLauncher() {
         updateSearchControls();
         clearActiveResult();
         const result = searchState.results[searchState.activeIndex];
-        const target = await ensureMessageLoaded(result.messageId);
+        const target = await ensureChatMessageLoaded(result.messageId);
         if (!target || token !== searchState.navigationToken) return;
         target.classList.add('st-pocket-search-current');
         if (result.hidden) target.classList.add('st-pocket-search-reveal');
@@ -1200,7 +1238,7 @@ function createNativeDrawerLauncher() {
         searchState.activeIndex = -1;
         updateSearchControls();
         if (!restore || searchState.restoreMessageId === null) return;
-        const anchor = await ensureMessageLoaded(Number(searchState.restoreMessageId));
+        const anchor = await ensureChatMessageLoaded(Number(searchState.restoreMessageId));
         if (!anchor) return;
         const chatElement = document.getElementById('chat');
         const currentOffset = anchor.getBoundingClientRect().top - chatElement.getBoundingClientRect().top;
@@ -1231,7 +1269,7 @@ function createNativeDrawerLauncher() {
     });
 
     mobileHeader.append(identity, search, contextStats, launcher);
-    document.body.append(scrim, mobileHeader, chatActions, menu);
+    document.body.append(scrim, mobileHeader, chatActions, menu, latestButton);
     syncChatIdentity();
     const chatObserver = new MutationObserver(() => {
         syncChatIdentity();
@@ -1268,6 +1306,15 @@ function createChatActions(toggle) {
             <button type="button" data-action="delete">刪除聊天</button>
             <button type="button" data-native="#option_close_chat">關閉聊天</button>
         </div>
+        <form class="st-pocket-floor-jump" aria-label="樓層快速跳轉">
+            <div class="st-pocket-floor-jump-heading">${lucideIcon('hash')}<strong>樓層快速跳轉</strong><output aria-live="polite">目前 -- / 最後 --</output></div>
+            <div class="st-pocket-floor-jump-controls">
+                <label for="st-pocket-floor-input">目標樓層</label>
+                <input id="st-pocket-floor-input" type="number" inputmode="numeric" min="0" step="1" placeholder="例如 128" required>
+                <button type="submit">跳轉</button>
+            </div>
+            <p class="st-pocket-floor-jump-feedback" aria-live="polite"></p>
+        </form>
         <section class="st-pocket-chat-actions-extensions" aria-labelledby="st-pocket-chat-actions-extensions-title">
             <strong id="st-pocket-chat-actions-extensions-title">擴充快捷操作</strong>
             <div id="st-pocket-chat-actions-topinfobar" class="st-pocket-chat-actions-grid" aria-label="TopInfoBar 快捷操作"></div>
@@ -1277,11 +1324,80 @@ function createChatActions(toggle) {
         panel.hidden = true;
         toggle.setAttribute('aria-expanded', 'false');
     };
+    const floorForm = panel.querySelector('.st-pocket-floor-jump');
+    const floorInput = floorForm.querySelector('input');
+    const floorStatus = floorForm.querySelector('output');
+    const floorFeedback = floorForm.querySelector('.st-pocket-floor-jump-feedback');
+    const updateFloorStatus = () => {
+        const messages = [...document.querySelectorAll('#chat .mes[mesid]')];
+        const chatTop = document.getElementById('chat')?.getBoundingClientRect().top ?? 0;
+        const current = messages.find((message) => message.getBoundingClientRect().bottom > chatTop)?.getAttribute('mesid');
+        floorStatus.textContent = `目前 ${current === undefined ? '--' : `#${current}`} / 最後 ${chat.length ? `#${chat.length - 1}` : '--'}`;
+        floorInput.max = String(Math.max(0, chat.length - 1));
+    };
     toggle.addEventListener('click', () => {
         const opening = panel.hidden;
+        if (opening) {
+            updateFloorStatus();
+            floorFeedback.textContent = '';
+        }
         panel.hidden = !opening;
         toggle.setAttribute('aria-expanded', String(opening));
     });
+    floorForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const messageId = Number(floorInput.value);
+        if (!Number.isInteger(messageId) || messageId < 0 || messageId >= chat.length) {
+            floorFeedback.textContent = `請輸入 0 到 ${Math.max(0, chat.length - 1)} 之間的樓層。`;
+            floorInput.focus();
+            return;
+        }
+        floorFeedback.textContent = '正在定位…';
+        const target = await ensureChatMessageLoaded(messageId);
+        if (!target) {
+            floorFeedback.textContent = `找不到樓層 #${messageId}。`;
+            return;
+        }
+        target.classList.add('st-pocket-floor-current');
+        if (chat[messageId]?.is_system) target.classList.add('st-pocket-floor-reveal');
+        target.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+        globalThis.setTimeout(() => target.classList.remove('st-pocket-floor-current', 'st-pocket-floor-reveal'), 2200);
+        close();
+    });
+    const openFromMessageId = (display) => {
+        const messageId = display.closest('.mes[mesid]')?.getAttribute('mesid');
+        if (messageId === undefined) return;
+        panel.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        updateFloorStatus();
+        floorInput.value = messageId;
+        floorFeedback.textContent = '';
+        floorInput.focus();
+        floorInput.select();
+    };
+    const prepareMessageIdShortcuts = () => {
+        document.querySelectorAll('#chat .mesIDDisplay').forEach((display) => {
+            display.setAttribute('role', 'button');
+            display.setAttribute('tabindex', '0');
+            display.setAttribute('title', '樓層快速跳轉');
+            display.setAttribute('aria-label', `從${display.textContent.trim() || '此樓層'}開啟樓層快速跳轉`);
+        });
+    };
+    document.getElementById('chat')?.addEventListener('click', (event) => {
+        const display = event.target.closest?.('.mesIDDisplay');
+        if (display) openFromMessageId(display);
+    });
+    document.getElementById('chat')?.addEventListener('keydown', (event) => {
+        const display = event.target.closest?.('.mesIDDisplay');
+        if (display && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            openFromMessageId(display);
+        }
+    });
+    const messageIdObserver = new MutationObserver(prepareMessageIdShortcuts);
+    const chatElement = document.getElementById('chat');
+    if (chatElement) messageIdObserver.observe(chatElement, { childList: true, subtree: true });
+    prepareMessageIdShortcuts();
     panel.querySelector('.st-pocket-chat-actions-heading button').addEventListener('click', close);
     panel.querySelectorAll('[data-native]').forEach((button) => button.addEventListener('click', () => {
         const nativeAction = document.querySelector(button.dataset.native);
@@ -1321,6 +1437,44 @@ function createChatActions(toggle) {
         if (event.key === 'Escape') close();
     });
     return panel;
+}
+
+function prefersReducedMotion() {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+}
+
+async function ensureChatMessageLoaded(messageId) {
+    let target = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
+    if (target) return target;
+    const firstDisplayedId = Number(document.querySelector('#chat .mes[mesid]')?.getAttribute('mesid'));
+    if (!Number.isNaN(firstDisplayedId) && messageId < firstDisplayedId) {
+        await showMoreMessages(firstDisplayedId - messageId);
+        target = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
+    }
+    return target;
+}
+
+function createReturnToLatestButton() {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'st-pocket-return-latest';
+    button.innerHTML = lucideIcon('arrowDown');
+    button.setAttribute('aria-label', '回到最新訊息');
+    button.title = '回到最新';
+    button.hidden = true;
+    const chatElement = document.getElementById('chat');
+    const update = () => {
+        if (!chatElement) return;
+        const distance = chatElement.scrollHeight - chatElement.clientHeight - chatElement.scrollTop;
+        button.hidden = distance < Math.max(120, chatElement.clientHeight * 0.2);
+    };
+    button.addEventListener('click', () => {
+        chatElement?.scrollTo({ top: chatElement.scrollHeight, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    });
+    chatElement?.addEventListener('scroll', update, { passive: true });
+    if (chatElement) new MutationObserver(update).observe(chatElement, { childList: true });
+    update();
+    return button;
 }
 
 function setupChatActionExtensions(panel, closePanel) {
@@ -1686,6 +1840,35 @@ function enableMobileKeyboardAvoidance() {
     update();
 }
 
+function createGenerationAnimation() {
+    const sendForm = document.getElementById('send_form');
+    if (!sendForm || document.getElementById('st-pocket-generation-animation')) return false;
+
+    const animation = document.createElement('div');
+    animation.id = 'st-pocket-generation-animation';
+    animation.className = 'st-pocket-generation-animation';
+    animation.setAttribute('aria-hidden', 'true');
+    animation.hidden = !getSavedGenerationAnimationEnabled();
+    animation.innerHTML = `
+        <span class="st-pocket-generation-track">
+            <span class="st-pocket-generation-icon"></span>
+            <span class="st-pocket-generation-icon"></span>
+            <span class="st-pocket-generation-icon"></span>
+        </span>`;
+    sendForm.append(animation);
+
+    const setGenerating = (generating) => {
+        animation.classList.toggle('is-active', Boolean(generating) && getSavedGenerationAnimationEnabled());
+    };
+    eventSource.on(event_types.GENERATION_STARTED, (_type, _params, isDryRun) => {
+        if (!isDryRun) setGenerating(true);
+    });
+    eventSource.on(event_types.GENERATION_ENDED, () => setGenerating(false));
+    eventSource.on(event_types.GENERATION_STOPPED, () => setGenerating(false));
+    eventSource.on(event_types.CHAT_CHANGED, () => setGenerating(false));
+    return true;
+}
+
 function initialize() {
     let context = null;
     try {
@@ -1697,6 +1880,13 @@ function initialize() {
     enableIPhoneSafeArea();
     enableBrowserChromeFallbacks();
     enableMobileKeyboardAvoidance();
+    if (!createGenerationAnimation()) {
+        const composerObserver = new MutationObserver(() => {
+            if (createGenerationAnimation()) composerObserver.disconnect();
+        });
+        composerObserver.observe(document.body, { childList: true, subtree: true });
+        globalThis.setTimeout(() => composerObserver.disconnect(), 10000);
+    }
     createModeSwitcher();
     createNativeDrawerLauncher();
     if (!createQuickPersonaSwitcher()) {

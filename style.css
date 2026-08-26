@@ -48,6 +48,10 @@
     --st-pocket-apple-strong: #743f45;
 }
 
+html[data-st-pocket-theme='cream-apple'] {
+    --st-pocket-generation-icon: url('./assets/generation-cream-apple.png');
+}
+
 html.st-pocket-ui-enabled {
     min-height: 100%;
     color: var(--st-pocket-ink);
@@ -830,6 +834,69 @@ html[data-st-pocket-layout='mobile'] .st-pocket-chat-actions {
 .st-pocket-chat-actions-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; padding: 0.6rem; }
 .st-pocket-chat-actions-grid button { border: 1px solid var(--st-pocket-cream-border); background: rgb(226 217 198 / 18%); }
 
+.st-pocket-floor-jump {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0 0.6rem 0.6rem;
+    padding: 0.65rem;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 0.8rem;
+    background: rgb(226 217 198 / 12%);
+}
+
+.st-pocket-floor-jump-heading,
+.st-pocket-floor-jump-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.st-pocket-floor-jump-heading svg { width: 1rem; height: 1rem; }
+.st-pocket-floor-jump-heading output { margin-left: auto; color: var(--st-pocket-muted); font-size: 0.72rem; }
+.st-pocket-floor-jump-controls label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.st-pocket-floor-jump-controls input {
+    min-width: 0;
+    min-height: 2.75rem;
+    flex: 1;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 0.65rem;
+    color: var(--st-pocket-ink);
+    background: rgb(255 253 248 / 92%);
+    font: inherit;
+}
+.st-pocket-floor-jump-controls button {
+    min-height: 2.75rem;
+    padding-inline: 0.9rem;
+    border: 0;
+    border-radius: 0.65rem;
+    color: #fff;
+    background: var(--st-pocket-apple);
+    font: inherit;
+    font-weight: 700;
+}
+.st-pocket-floor-jump-feedback { min-height: 1em; margin: 0; color: var(--st-pocket-muted); font-size: 0.72rem; }
+
+.st-pocket-return-latest {
+    position: fixed;
+    z-index: 9998;
+    right: max(1rem, var(--st-pocket-safe-right));
+    bottom: calc(max(0.5rem, var(--st-pocket-safe-bottom)) + 4.75rem);
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 50%;
+    color: var(--st-pocket-ink);
+    background: rgb(255 253 248 / 96%);
+    box-shadow: 0 0.5rem 1.4rem rgb(49 39 33 / 22%);
+    cursor: pointer;
+}
+.st-pocket-return-latest[hidden] { display: none; }
+.st-pocket-return-latest svg { width: 1.2rem; height: 1.2rem; }
+.st-pocket-return-latest:is(:hover, :focus-visible) { color: var(--st-pocket-apple); background: var(--st-pocket-apple-soft); }
+
 .st-pocket-chat-actions-extensions {
     display: grid;
     gap: 0.4rem;
@@ -984,13 +1051,13 @@ html[data-st-pocket-layout='mobile'] .st-pocket-chat-search input {
     opacity: 0.4;
 }
 
-#chat .mes.st-pocket-search-current {
+#chat .mes:is(.st-pocket-search-current, .st-pocket-floor-current) {
     outline: 2px solid var(--st-pocket-accent, #9c6958);
     outline-offset: -2px;
     background: rgb(255 236 185 / 18%);
 }
 
-#chat .mes.st-pocket-search-reveal {
+#chat .mes:is(.st-pocket-search-reveal, .st-pocket-floor-reveal) {
     display: flex !important;
 }
 
@@ -1427,11 +1494,76 @@ html.st-pocket-ui-enabled #chat :is(code, pre) {
 }
 
 html.st-pocket-ui-enabled #send_form {
+    position: relative;
     border: 1px solid var(--st-pocket-cream-border);
     color: var(--st-pocket-ink);
     background: rgb(251 248 241 / 100%);
     box-shadow: var(--st-pocket-cream-shadow);
     text-shadow: none;
+}
+
+.st-pocket-generation-animation {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    bottom: 0.3rem;
+    width: clamp(4.5rem, 18vw, 6.5rem);
+    height: 1.75rem;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-50%);
+    transition: opacity 160ms ease;
+}
+
+.st-pocket-generation-animation.is-active {
+    opacity: 1;
+}
+
+.st-pocket-generation-animation[hidden] {
+    display: none;
+}
+
+.st-pocket-generation-track {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+.st-pocket-generation-icon {
+    width: 1.25rem;
+    aspect-ratio: 1;
+    background: var(--st-pocket-generation-icon) center / contain no-repeat;
+    filter: drop-shadow(0 0.12rem 0.12rem rgb(89 70 54 / 18%));
+}
+
+.st-pocket-generation-animation.is-active .st-pocket-generation-icon {
+    animation: st-pocket-generation-icon-bounce 1.05s ease-in-out infinite;
+}
+
+.st-pocket-generation-animation.is-active .st-pocket-generation-icon:nth-child(2) {
+    animation-delay: 140ms;
+}
+
+.st-pocket-generation-animation.is-active .st-pocket-generation-icon:nth-child(3) {
+    animation-delay: 280ms;
+}
+
+@keyframes st-pocket-generation-icon-bounce {
+    0%, 55%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-0.45rem); }
+}
+
+@media (max-width: 380px) {
+    .st-pocket-generation-animation {
+        width: 4.25rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .st-pocket-generation-animation { display: none; }
 }
 
 html.st-pocket-ui-enabled #send_textarea {
@@ -1838,6 +1970,15 @@ html[data-st-pocket-layout='desktop'] #send_form {
     background: rgb(251 248 241 / 100%);
     box-shadow: var(--st-pocket-cream-shadow);
     backdrop-filter: none;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-return-latest {
+    right: max(1.25rem, calc((100vw - var(--st-pocket-message-max-width, 100%)) / 2 + 1.25rem));
+    bottom: 5.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .st-pocket-return-latest { transition: none; }
 }
 
 html[data-st-pocket-layout='desktop'] #send_textarea {
