@@ -1,3 +1,7 @@
+import { eventSource, event_types, getThumbnailUrl } from '../../../../script.js';
+import { power_user } from '../../../power-user.js';
+import { getUserAvatar, getUserAvatars, setUserAvatar, user_avatar } from '../../../personas.js';
+
 const STORAGE_KEY = 'st-pocket-ui-mode';
 const INPUT_ROWS_STORAGE_KEY = 'st-pocket-ui-input-rows';
 const MESSAGE_FONT_SIZE_STORAGE_KEY = 'st-pocket-ui-message-font-size';
@@ -38,6 +42,7 @@ const CONTEXT_ICON_SVGS = {
     remaining: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
     prompt: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="m8 9 2 2-2 2M13 15h3"/></svg>',
     reserve: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 10h8M8 14h5"/></svg>',
+    connection: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v6M8 5h8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M8 14h.01M12 14h4"/></svg>',
 };
 const MOBILE_VIEWPORT = globalThis.matchMedia?.('(max-width: 767px)') ?? {
     matches: globalThis.innerWidth <= 767,
@@ -54,6 +59,143 @@ let memoryFloatingButtonPosition = null;
 let memoryDefaultBackgroundEnabled = true;
 let memoryFontFamily = 'native';
 let memoryTheme = 'cream-apple';
+
+const supportsPersonaThumbnails = getThumbnailUrl('persona', 'st-pocket-probe.png', true).includes('&t=');
+
+function getPersonaImageUrl(avatarId) {
+    if (!avatarId) return '/img/ai4.png';
+    if (supportsPersonaThumbnails) return getThumbnailUrl('persona', avatarId, true);
+    return `${getUserAvatar(avatarId)}?t=${Date.now()}`;
+}
+
+function createQuickPersonaSwitcher() {
+    if (document.getElementById('st-pocket-quick-persona')) return true;
+    const leftSendForm = document.getElementById('leftSendForm');
+    if (!leftSendForm) return false;
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'st-pocket-quick-persona';
+    wrapper.className = 'st-pocket-quick-persona';
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'st-pocket-quick-persona-toggle';
+    toggle.setAttribute('aria-label', '快速切換 Persona');
+    toggle.setAttribute('aria-haspopup', 'dialog');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.innerHTML = '<img src="/img/ai4.png" alt=""><i class="fa-solid fa-caret-up" aria-hidden="true"></i>';
+
+    const menu = document.createElement('section');
+    menu.className = 'st-pocket-quick-persona-menu';
+    menu.hidden = true;
+    menu.setAttribute('role', 'dialog');
+    menu.setAttribute('aria-label', '選擇 Persona');
+    menu.innerHTML = '<div class="st-pocket-quick-persona-heading"><strong>快速切換 Persona</strong><button type="button" aria-label="關閉 Persona 選單">×</button></div><div class="st-pocket-quick-persona-grid"></div>';
+
+    const toggleImage = toggle.querySelector('img');
+    const grid = menu.querySelector('.st-pocket-quick-persona-grid');
+    const close = () => {
+        menu.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.querySelector('i').classList.replace('fa-caret-down', 'fa-caret-up');
+    };
+    const positionMenu = () => {
+        if (menu.hidden) return;
+        const rect = toggle.getBoundingClientRect();
+        const gutter = 8;
+        const left = Math.min(Math.max(gutter, rect.left), Math.max(gutter, globalThis.innerWidth - menu.offsetWidth - gutter));
+        menu.style.left = `${Math.round(left)}px`;
+        menu.style.bottom = `${Math.max(gutter, Math.round(globalThis.innerHeight - rect.top + gutter))}px`;
+    };
+    const syncCurrentPersona = () => {
+        const personaName = power_user.personas?.[user_avatar] || user_avatar || '目前 Persona';
+        const personaTitle = power_user.persona_descriptions?.[user_avatar]?.title || '';
+        toggleImage.src = getPersonaImageUrl(user_avatar);
+        toggleImage.alt = '';
+        toggle.title = personaTitle ? `${personaName}－${personaTitle}` : personaName;
+        toggle.setAttribute('aria-label', `快速切換 Persona，目前為 ${personaName}`);
+        grid.querySelectorAll('[data-persona-avatar]').forEach((button) => {
+            const selected = button.dataset.personaAvatar === user_avatar;
+            button.classList.toggle('is-selected', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        });
+    };
+    const renderPersonas = async () => {
+        grid.setAttribute('aria-busy', 'true');
+        try {
+            const avatars = await getUserAvatars(false);
+            const fragment = document.createDocumentFragment();
+            for (const avatarId of avatars) {
+                const personaName = power_user.personas?.[avatarId] || avatarId;
+                const personaTitle = power_user.persona_descriptions?.[avatarId]?.title || '';
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'st-pocket-quick-persona-option';
+                button.dataset.personaAvatar = avatarId;
+                button.setAttribute('aria-label', personaTitle ? `${personaName}，${personaTitle}` : personaName);
+                button.innerHTML = '<img alt=""><span></span><i class="fa-solid fa-check" aria-hidden="true"></i>';
+                button.querySelector('img').src = getPersonaImageUrl(avatarId);
+                button.querySelector('span').textContent = personaName;
+                button.classList.toggle('is-default', avatarId === power_user.default_persona);
+                button.addEventListener('click', async () => {
+                    button.disabled = true;
+                    try {
+                        await setUserAvatar(avatarId);
+                        syncCurrentPersona();
+                        close();
+                        toggle.focus({ preventScroll: true });
+                    } catch (error) {
+                        console.warn('[ST Pocket UI] Persona switch failed.', error);
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+                fragment.append(button);
+            }
+            grid.replaceChildren(fragment);
+            syncCurrentPersona();
+        } catch (error) {
+            grid.textContent = '無法讀取 Persona 清單';
+            console.warn('[ST Pocket UI] Persona list is unavailable.', error);
+        } finally {
+            grid.removeAttribute('aria-busy');
+        }
+    };
+    const open = async () => {
+        menu.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.querySelector('i').classList.replace('fa-caret-up', 'fa-caret-down');
+        await renderPersonas();
+        positionMenu();
+        menu.querySelector('.is-selected, .st-pocket-quick-persona-option')?.focus({ preventScroll: true });
+    };
+
+    toggle.addEventListener('click', () => menu.hidden ? open() : close());
+    menu.querySelector('.st-pocket-quick-persona-heading button').addEventListener('click', () => {
+        close();
+        toggle.focus({ preventScroll: true });
+    });
+    document.addEventListener('click', (event) => {
+        if (!menu.hidden && !menu.contains(event.target) && !toggle.contains(event.target)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !menu.hidden) {
+            close();
+            toggle.focus({ preventScroll: true });
+        }
+    });
+    globalThis.addEventListener('resize', positionMenu);
+    globalThis.visualViewport?.addEventListener('resize', positionMenu);
+    globalThis.visualViewport?.addEventListener('scroll', positionMenu);
+    eventSource.on(event_types.CHAT_CHANGED, syncCurrentPersona);
+    eventSource.on(event_types.SETTINGS_UPDATED, syncCurrentPersona);
+
+    wrapper.append(toggle);
+    leftSendForm.prepend(wrapper);
+    document.body.append(menu);
+    syncCurrentPersona();
+    return true;
+}
 
 // Pocket UI only opens SillyTavern's native drawers. It does not copy their
 // fields or own their data, so updates and other extensions keep working.
@@ -359,6 +501,7 @@ function applyExtensionEnabled(enabled, { persist = true } = {}) {
     const nextEnabled = Boolean(enabled);
     memoryExtensionEnabled = nextEnabled;
     document.documentElement.classList.toggle('st-pocket-ui-enabled', nextEnabled);
+    syncTopInfoBarVisibility();
 
     if (nextEnabled) {
         applyTheme(getSavedTheme(), { persist: false });
@@ -393,6 +536,22 @@ function applyExtensionEnabled(enabled, { persist = true } = {}) {
         } catch (error) {
             console.warn('[ST Pocket UI] Enable state could not be persisted; using this session only.', error);
         }
+    }
+}
+
+function syncTopInfoBarVisibility() {
+    const topBar = document.getElementById('extensionTopBar');
+    if (!topBar) return;
+
+    const shouldHide = document.documentElement.classList.contains('st-pocket-ui-enabled');
+    if (shouldHide && !topBar.hasAttribute('data-st-pocket-topinfobar-hidden')) {
+        topBar.dataset.stPocketPreviousInert = String(topBar.inert);
+        topBar.dataset.stPocketTopinfobarHidden = '';
+        topBar.inert = true;
+    } else if (!shouldHide && topBar.hasAttribute('data-st-pocket-topinfobar-hidden')) {
+        topBar.inert = topBar.dataset.stPocketPreviousInert === 'true';
+        delete topBar.dataset.stPocketPreviousInert;
+        delete topBar.dataset.stPocketTopinfobarHidden;
     }
 }
 
@@ -881,8 +1040,11 @@ function createNativeDrawerLauncher() {
     mobileHeader.className = 'st-pocket-mobile-header';
     mobileHeader.dataset.stPocketUi = 'mobile-header';
 
-    const identity = document.createElement('div');
+    const identity = document.createElement('button');
+    identity.type = 'button';
     identity.className = 'st-pocket-chat-identity';
+    identity.setAttribute('aria-label', '開啟聊天操作');
+    identity.setAttribute('aria-expanded', 'false');
     const avatar = document.createElement('img');
     avatar.className = 'st-pocket-chat-avatar';
     avatar.alt = '';
@@ -890,6 +1052,8 @@ function createNativeDrawerLauncher() {
     title.className = 'st-pocket-chat-title';
     title.textContent = 'SillyTavern';
     identity.append(avatar, title);
+
+    const chatActions = createChatActions(identity);
 
     const search = document.createElement('label');
     search.className = 'st-pocket-chat-search';
@@ -929,7 +1093,7 @@ function createNativeDrawerLauncher() {
     searchInput.addEventListener('search', applyChatSearch);
 
     mobileHeader.append(identity, search, contextStats, launcher);
-    document.body.append(scrim, mobileHeader, menu);
+    document.body.append(scrim, mobileHeader, chatActions, menu);
     syncChatIdentity();
     const chatObserver = new MutationObserver(() => {
         syncChatIdentity();
@@ -945,6 +1109,169 @@ function createNativeDrawerLauncher() {
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') closeMenu();
     });
+}
+
+function createChatActions(toggle) {
+    const panel = document.createElement('section');
+    panel.className = 'st-pocket-chat-actions';
+    panel.hidden = true;
+    panel.setAttribute('aria-label', '聊天操作');
+    panel.innerHTML = `
+        <div class="st-pocket-chat-actions-heading"><strong>聊天操作</strong><button type="button" aria-label="關閉聊天操作">×</button></div>
+        <div class="st-pocket-chat-actions-grid">
+            <button type="button" data-native="#option_select_chat">聊天檔案</button>
+            <button type="button" data-native="#option_start_new_chat">新增聊天</button>
+            <button type="button" data-action="rename">重新命名</button>
+            <button type="button" data-action="delete">刪除聊天</button>
+            <button type="button" data-native="#option_close_chat">關閉聊天</button>
+        </div>
+        <section class="st-pocket-chat-actions-extensions" aria-labelledby="st-pocket-chat-actions-extensions-title">
+            <strong id="st-pocket-chat-actions-extensions-title">擴充快捷操作</strong>
+            <div id="st-pocket-chat-actions-topinfobar" class="st-pocket-chat-actions-grid" aria-label="TopInfoBar 快捷操作"></div>
+            <div id="st-pocket-chat-actions-slot" class="st-pocket-chat-actions-grid" aria-label="第三方擴充快捷操作"></div>
+        </section>`;
+    const close = () => {
+        panel.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+    toggle.addEventListener('click', () => {
+        const opening = panel.hidden;
+        panel.hidden = !opening;
+        toggle.setAttribute('aria-expanded', String(opening));
+    });
+    panel.querySelector('.st-pocket-chat-actions-heading button').addEventListener('click', close);
+    panel.querySelectorAll('[data-native]').forEach((button) => button.addEventListener('click', () => {
+        const nativeAction = document.querySelector(button.dataset.native);
+        if (nativeAction) nativeAction.click();
+        else console.warn(`[ST Pocket UI] Native chat action is unavailable: ${button.dataset.native}`);
+        close();
+    }));
+    panel.querySelector('[data-action="rename"]').addEventListener('click', async () => {
+        try {
+            const context = globalThis.SillyTavern?.getContext?.();
+            const currentName = context?.getCurrentChatId?.();
+            if (!currentName) return;
+            const nextName = await context.Popup?.show?.input?.('輸入新的聊天名稱', null, currentName);
+            if (nextName && nextName !== currentName) await context.renameChat?.(currentName, String(nextName));
+        } catch (error) {
+            console.warn('[ST Pocket UI] Chat rename is unavailable.', error);
+        } finally {
+            close();
+        }
+    });
+    panel.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+        try {
+            const context = globalThis.SillyTavern?.getContext?.();
+            const confirmed = await context?.Popup?.show?.confirm?.('確定要刪除目前聊天嗎？');
+            if (confirmed) await context?.executeSlashCommandsWithOptions?.('/delchat');
+        } catch (error) {
+            console.warn('[ST Pocket UI] Chat delete is unavailable.', error);
+        } finally {
+            close();
+        }
+    });
+    setupChatActionExtensions(panel, close);
+    document.addEventListener('click', (event) => {
+        if (!panel.contains(event.target) && !toggle.contains(event.target)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close();
+    });
+    return panel;
+}
+
+function setupChatActionExtensions(panel, closePanel) {
+    const actionSelector = 'button, a[href], input[type="button"], input[type="submit"], [role="button"], [tabindex]';
+    const proxyContainer = panel.querySelector('#st-pocket-chat-actions-topinfobar');
+    const publicSlot = panel.querySelector('#st-pocket-chat-actions-slot');
+    const excludedTopInfoBarIds = new Set([
+        'extensionTopBarChatManager',
+        'extensionTopBarNewChat',
+        'extensionTopBarRenameChat',
+        'extensionTopBarDeleteChat',
+        'extensionTopBarCloseChat',
+        'extensionTopBarToggleConnectionProfiles',
+    ]);
+    let observedTopBar = null;
+    let syncFrame = 0;
+
+    const getActionLabel = (source) => source.getAttribute('aria-label')
+        || source.getAttribute('title')
+        || source.textContent?.trim()
+        || '';
+    const isAvailable = (source) => {
+        const style = globalThis.getComputedStyle?.(source);
+        return !source.hidden
+            && source.getAttribute('aria-hidden') !== 'true'
+            && !source.classList.contains('displayNone')
+            && !source.classList.contains('not-in-chat')
+            && style?.display !== 'none'
+            && style?.visibility !== 'hidden';
+    };
+    const syncProxies = () => {
+        syncFrame = 0;
+        if (!observedTopBar?.isConnected) return;
+        const sources = [...observedTopBar.querySelectorAll(actionSelector)]
+            .filter((source) => !source.parentElement?.closest(actionSelector))
+            .filter((source) => !excludedTopInfoBarIds.has(source.id))
+            .filter((source) => !['extensionTopBarChatName', 'extensionTopBarSearchInput'].includes(source.id))
+            .filter((source) => getActionLabel(source));
+        const fragment = document.createDocumentFragment();
+        for (const source of sources) {
+            const label = getActionLabel(source);
+            const proxy = document.createElement('button');
+            proxy.type = 'button';
+            proxy.className = 'st-pocket-extension-action';
+            proxy.dataset.stPocketProxyFor = source.id || label;
+            proxy.disabled = Boolean(source.disabled) || source.getAttribute('aria-disabled') === 'true';
+            proxy.hidden = !isAvailable(source);
+            if (source.getAttribute('aria-pressed')) proxy.setAttribute('aria-pressed', source.getAttribute('aria-pressed'));
+            const sourceIcon = source.matches('i, svg, img') ? source : source.querySelector('i, svg, img');
+            if (sourceIcon) {
+                const icon = sourceIcon.cloneNode(true);
+                [icon, ...icon.querySelectorAll?.('*') || []].forEach((element) => {
+                    element.removeAttribute('id');
+                    for (const attribute of [...element.attributes]) {
+                        if (attribute.name.startsWith('on')) element.removeAttribute(attribute.name);
+                    }
+                });
+                icon.setAttribute('aria-hidden', 'true');
+                proxy.append(icon);
+            }
+            const text = document.createElement('span');
+            text.textContent = label;
+            proxy.append(text);
+            proxy.addEventListener('click', () => {
+                if (!source.isConnected || proxy.disabled) return;
+                source.click();
+                closePanel();
+            });
+            fragment.append(proxy);
+        }
+        proxyContainer.replaceChildren(fragment);
+    };
+    const scheduleSync = () => {
+        if (!syncFrame) syncFrame = globalThis.requestAnimationFrame?.(syncProxies) || globalThis.setTimeout(syncProxies, 0);
+    };
+    const topBarObserver = new MutationObserver(scheduleSync);
+    const discoverTopBar = () => {
+        const topBar = document.getElementById('extensionTopBar');
+        syncTopInfoBarVisibility();
+        if (topBar === observedTopBar) return;
+        topBarObserver.disconnect();
+        observedTopBar = topBar;
+        if (observedTopBar) topBarObserver.observe(observedTopBar, {
+            attributes: true,
+            attributeFilter: ['aria-disabled', 'aria-hidden', 'aria-label', 'aria-pressed', 'class', 'disabled', 'hidden', 'title'],
+            childList: true,
+            subtree: true,
+        });
+        scheduleSync();
+    };
+    const discoveryObserver = new MutationObserver(discoverTopBar);
+    discoveryObserver.observe(document.body, { childList: true, subtree: true });
+    discoverTopBar();
+    document.dispatchEvent(new CustomEvent('st-pocket-ui:chat-actions-ready', { detail: { slot: publicSlot } }));
 }
 
 function createContextUsageStats() {
@@ -975,6 +1302,10 @@ function createContextUsageStats() {
             <div class="st-pocket-context-metric" data-metric="prompt">${CONTEXT_ICON_SVGS.prompt}<span>Prompt</span><strong>-- / --</strong></div>
             <div class="st-pocket-context-metric" data-metric="reserve">${CONTEXT_ICON_SVGS.reserve}<span>回覆預留</span><strong>--</strong></div>
         </div>
+        <section class="st-pocket-connection" aria-labelledby="st-pocket-connection-title">
+            <div class="st-pocket-connection-heading">${CONTEXT_ICON_SVGS.connection}<div><strong id="st-pocket-connection-title">目前 API 連線</strong><small class="st-pocket-connection-status">讀取中…</small></div></div>
+            <label><span>Connection Profile</span><select class="st-pocket-connection-select" aria-label="切換 Connection Profile" disabled><option>尚無可用設定檔</option></select></label>
+        </section>
         <div class="st-pocket-context-breakdown"></div>
         <p class="st-pocket-context-note">分項取自 SillyTavern 最近一次 Prompt；總使用率包含本次回覆預留空間。</p>`;
 
@@ -997,6 +1328,44 @@ function createContextUsageStats() {
     wrapper.append(toggle, panel);
 
     const formatTokens = (value) => new Intl.NumberFormat('zh-TW').format(Math.max(0, Math.round(Number(value) || 0)));
+
+    const connectionSelect = panel.querySelector('.st-pocket-connection-select');
+    const connectionStatus = panel.querySelector('.st-pocket-connection-status');
+    let nativeConnectionSelect = null;
+    const syncConnection = async () => {
+        const context = globalThis.SillyTavern?.getContext?.();
+        nativeConnectionSelect = document.getElementById('connection_profiles');
+        if (nativeConnectionSelect) {
+            connectionSelect.replaceChildren(...[...nativeConnectionSelect.options].map((option) => option.cloneNode(true)));
+            connectionSelect.value = nativeConnectionSelect.value;
+            connectionSelect.disabled = false;
+        } else {
+            connectionSelect.innerHTML = '<option>尚無可用設定檔</option>';
+            connectionSelect.disabled = true;
+        }
+        const online = context?.onlineStatus;
+        if (!online || online === 'no_connection') {
+            connectionStatus.textContent = '未連線';
+            connectionStatus.dataset.online = 'false';
+            return;
+        }
+        let api = context?.mainApi || 'API';
+        let model = online;
+        try {
+            const commands = context?.SlashCommandParser?.commands;
+            api = await commands?.api?.callback?.({ quiet: 'true' }, '') || api;
+            model = await commands?.model?.callback?.({ quiet: 'true' }, '') || model;
+        } catch (error) {
+            console.debug('[ST Pocket UI] Detailed API status is unavailable.', error);
+        }
+        connectionStatus.textContent = `${api} · ${model}`;
+        connectionStatus.dataset.online = 'true';
+    };
+    connectionSelect.addEventListener('change', () => {
+        if (!nativeConnectionSelect) return;
+        nativeConnectionSelect.value = connectionSelect.value;
+        nativeConnectionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     const render = ({ total, maximum, reserved = 0, categories } = {}) => {
         if (!total || !maximum) return;
         const promptBudget = Math.max(0, maximum - reserved);
@@ -1079,10 +1448,13 @@ function createContextUsageStats() {
         }
     };
     update();
+    syncConnection();
     Promise.resolve().then(() => {
         const context = globalThis.SillyTavern?.getContext?.();
         context?.eventSource?.on?.('itemized_prompts_saved', update);
         context?.eventSource?.on?.('chat_id_changed', update);
+        context?.eventSource?.on?.('online_status_changed', syncConnection);
+        context?.eventSource?.on?.('connection_profile_loaded', syncConnection);
     });
     return wrapper;
 }
@@ -1125,6 +1497,52 @@ function enableBrowserChromeFallbacks() {
     }
 }
 
+function enableMobileKeyboardAvoidance() {
+    const root = document.documentElement;
+    const viewport = globalThis.visualViewport;
+    if (!viewport) {
+        root.dataset.stPocketKeyboardSupport = 'fallback';
+        return;
+    }
+
+    root.dataset.stPocketKeyboardSupport = 'visual-viewport';
+    let frame = 0;
+    const isEditable = (element) => element instanceof Element
+        && Boolean(element.closest('input, textarea, select, [contenteditable="true"]'));
+    const update = () => {
+        frame = 0;
+        const mobile = root.dataset.stPocketLayout === 'mobile';
+        const focused = isEditable(document.activeElement);
+        const keyboardInset = Math.max(0, globalThis.innerHeight - viewport.height - viewport.offsetTop);
+        const keyboardOpen = mobile && focused && keyboardInset >= 120;
+        const focusArea = document.activeElement?.closest?.('#send_form') ? 'composer' : 'overlay';
+
+        root.style.setProperty('--st-pocket-visual-height', `${Math.round(viewport.height)}px`);
+        root.style.setProperty('--st-pocket-viewport-top', `${Math.round(viewport.offsetTop)}px`);
+        root.style.setProperty('--st-pocket-keyboard-inset', keyboardOpen ? `${Math.round(keyboardInset)}px` : '0px');
+        root.dataset.stPocketKeyboard = keyboardOpen ? 'open' : 'closed';
+        root.dataset.stPocketKeyboardFocus = keyboardOpen ? focusArea : 'none';
+    };
+    const scheduleUpdate = () => {
+        if (frame) cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(update);
+    };
+
+    viewport.addEventListener('resize', scheduleUpdate);
+    viewport.addEventListener('scroll', scheduleUpdate);
+    globalThis.addEventListener('resize', scheduleUpdate);
+    document.addEventListener('focusin', (event) => {
+        if (!isEditable(event.target)) return;
+        scheduleUpdate();
+        globalThis.setTimeout(() => {
+            scheduleUpdate();
+            event.target.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+        }, 180);
+    });
+    document.addEventListener('focusout', () => globalThis.setTimeout(scheduleUpdate, 80));
+    update();
+}
+
 function initialize() {
     let context = null;
     try {
@@ -1135,8 +1553,16 @@ function initialize() {
     document.documentElement.dataset.stPocketContext = context ? 'ready' : 'unavailable';
     enableIPhoneSafeArea();
     enableBrowserChromeFallbacks();
+    enableMobileKeyboardAvoidance();
     createModeSwitcher();
     createNativeDrawerLauncher();
+    if (!createQuickPersonaSwitcher()) {
+        const personaObserver = new MutationObserver(() => {
+            if (createQuickPersonaSwitcher()) personaObserver.disconnect();
+        });
+        personaObserver.observe(document.body, { childList: true, subtree: true });
+        globalThis.setTimeout(() => personaObserver.disconnect(), 10000);
+    }
     createExtensionSettings();
     applyExtensionEnabled(getSavedExtensionEnabled(), { persist: false });
     if (!createWandMenuEntry()) {

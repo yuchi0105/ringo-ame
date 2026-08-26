@@ -87,7 +87,9 @@ html:not(.st-pocket-ui-enabled) :is(
     .st-pocket-native-launcher,
     .st-pocket-mobile-header,
     .st-pocket-native-menu,
-    .st-pocket-drawer-scrim
+    .st-pocket-drawer-scrim,
+    .st-pocket-quick-persona,
+    .st-pocket-quick-persona-menu
 ) {
     display: none !important;
 }
@@ -759,7 +761,113 @@ html[data-st-pocket-layout='mobile'] .st-pocket-chat-identity {
     align-items: center;
     gap: 0.45rem;
     min-width: 0;
+    min-height: 2.75rem;
+    padding: 0.2rem;
+    border: 0;
+    border-radius: 0.8rem;
+    background: transparent;
+    text-align: left;
 }
+
+html[data-st-pocket-layout='mobile'] .st-pocket-chat-identity[aria-expanded='true'] {
+    background: rgb(226 217 198 / 35%);
+}
+
+html[data-st-pocket-layout='mobile'] .st-pocket-chat-actions {
+    position: fixed;
+    z-index: 10003;
+    top: calc(var(--st-pocket-safe-top) + 4rem);
+    left: max(0.6rem, var(--st-pocket-safe-left));
+    width: min(18rem, calc(100vw - 1.2rem - var(--st-pocket-safe-left) - var(--st-pocket-safe-right)));
+    overflow: hidden;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 1rem;
+    color: var(--st-pocket-ink);
+    background: rgb(255 253 248 / 98%);
+    box-shadow: 0 1rem 2.5rem rgb(49 39 33 / 22%);
+}
+
+.st-pocket-chat-actions-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--st-pocket-cream-border);
+}
+
+.st-pocket-chat-actions-heading button,
+.st-pocket-chat-actions-grid button {
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: 0.7rem;
+    color: inherit;
+    background: transparent;
+}
+
+.st-pocket-chat-actions-heading button { width: 2.75rem; font-size: 1.4rem; }
+.st-pocket-chat-actions-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; padding: 0.6rem; }
+.st-pocket-chat-actions-grid button { border: 1px solid var(--st-pocket-cream-border); background: rgb(226 217 198 / 18%); }
+
+.st-pocket-chat-actions-extensions {
+    display: grid;
+    gap: 0.4rem;
+    padding: 0 0.6rem 0.6rem;
+}
+
+.st-pocket-chat-actions-extensions > strong {
+    padding-top: 0.1rem;
+    color: var(--st-pocket-muted);
+    font-size: 0.72rem;
+    font-weight: 650;
+}
+
+.st-pocket-chat-actions-extensions:not(:has(.st-pocket-chat-actions-grid > *)) {
+    display: none;
+}
+
+.st-pocket-chat-actions-extensions .st-pocket-chat-actions-grid {
+    padding: 0;
+}
+
+.st-pocket-extension-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding-inline: 0.65rem;
+    text-align: left;
+}
+
+.st-pocket-extension-action :is(i, svg, img) {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 1rem;
+    object-fit: contain;
+}
+
+.st-pocket-extension-action span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.st-pocket-connection {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0 0.75rem 0.75rem;
+    padding: 0.65rem;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 0.75rem;
+    background: rgb(226 217 198 / 18%);
+}
+
+.st-pocket-connection-heading { display: flex; align-items: center; gap: 0.55rem; }
+.st-pocket-connection-heading svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; }
+.st-pocket-connection-heading div { display: grid; min-width: 0; }
+.st-pocket-connection-heading small { overflow: hidden; color: var(--st-pocket-muted); font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
+.st-pocket-connection-status[data-online='false'] { color: #9c3f38; }
+.st-pocket-connection label { display: grid; gap: 0.25rem; color: var(--st-pocket-muted); font-size: 0.72rem; }
+.st-pocket-connection select { width: 100%; min-height: 2.75rem; padding-inline: 0.55rem; border: 1px solid var(--st-pocket-cream-border); border-radius: 0.65rem; color: var(--st-pocket-ink); background: rgb(255 253 248 / 92%); font: inherit; font-size: 0.82rem; }
 
 html[data-st-pocket-layout='mobile'] .st-pocket-chat-avatar {
     width: 2.25rem;
@@ -820,7 +928,7 @@ html[data-st-pocket-layout='mobile'] .st-pocket-native-menu {
     z-index: 10002;
     top: auto;
     right: max(0.5rem, var(--st-pocket-safe-right));
-    bottom: max(0.5rem, var(--st-pocket-safe-bottom));
+    bottom: max(0.5rem, var(--st-pocket-safe-bottom), var(--st-pocket-keyboard-inset, 0px));
     left: max(0.5rem, var(--st-pocket-safe-left));
     width: auto;
     max-height: min(78dvh, 42rem);
@@ -828,6 +936,47 @@ html[data-st-pocket-layout='mobile'] .st-pocket-native-menu {
     border-radius: 1.25rem;
     box-shadow: 0 -0.8rem 2.4rem rgb(49 39 33 / 24%);
     animation: st-pocket-sheet-enter 180ms ease-out;
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-keyboard='open'][data-st-pocket-keyboard-focus='composer'] .st-pocket-mobile-header {
+    top: var(--st-pocket-viewport-top, 0px);
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 3rem;
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-keyboard='open'][data-st-pocket-keyboard-focus='composer'] :is(
+    .st-pocket-chat-search,
+    .st-pocket-native-launcher
+) {
+    display: none;
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-keyboard='open'][data-st-pocket-keyboard-focus='composer'] .st-pocket-chat-title {
+    display: block;
+    max-width: none;
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-keyboard='open'] :is(
+    .st-pocket-context-panel,
+    .st-pocket-chat-actions
+) {
+    top: calc(var(--st-pocket-viewport-top, 0px) + 3.4rem);
+    max-height: calc(var(--st-pocket-visual-height, 100dvh) - 4rem);
+    overflow-y: auto;
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-keyboard='open'] .st-pocket-native-menu {
+    max-height: calc(var(--st-pocket-visual-height, 100dvh) - 1rem);
+    overflow-y: auto;
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-keyboard='open'][data-st-pocket-keyboard-focus='composer'] #chat {
+    padding-top: calc(3.25rem + var(--st-pocket-viewport-top, 0px));
+}
+
+html[data-st-pocket-layout='mobile'][data-st-pocket-keyboard='open'][data-st-pocket-keyboard-focus='composer'] #send_form {
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.25rem;
 }
 
 html[data-st-pocket-layout='mobile'] .st-pocket-sheet-handle {
@@ -1237,6 +1386,178 @@ html.st-pocket-ui-enabled #send_form :is(#leftSendForm, #rightSendForm) > div:fo
     filter: none;
 }
 
+.st-pocket-quick-persona {
+    order: -100;
+    flex: 0 0 auto;
+}
+
+html.st-pocket-ui-enabled #send_form #leftSendForm > .st-pocket-quick-persona:is(:hover, :focus-within) {
+    color: inherit;
+    background: transparent;
+}
+
+.st-pocket-quick-persona-toggle {
+    position: relative;
+    display: grid;
+    width: max(44px, var(--bottomFormBlockSize));
+    height: max(44px, var(--bottomFormBlockSize));
+    padding: 3px;
+    overflow: visible;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+}
+
+.st-pocket-quick-persona-toggle > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 50%;
+    box-shadow: 0 0.2rem 0.55rem rgb(89 70 54 / 18%);
+}
+
+.st-pocket-quick-persona-toggle > i {
+    position: absolute;
+    right: 0;
+    bottom: 1px;
+    display: grid;
+    width: 16px;
+    height: 16px;
+    place-items: center;
+    color: #fffdf8;
+    border: 1px solid #fffdf8;
+    border-radius: 50%;
+    background: var(--st-pocket-apple);
+    font-size: 9px;
+}
+
+.st-pocket-quick-persona-toggle:focus-visible {
+    outline: 2px solid var(--st-pocket-apple);
+    outline-offset: 2px;
+}
+
+.st-pocket-quick-persona-menu {
+    position: fixed;
+    z-index: 30020;
+    width: min(23rem, calc(100vw - 16px));
+    max-height: min(28rem, calc(var(--st-pocket-visual-height, 100dvh) - 5rem));
+    overflow: hidden;
+    color: var(--st-pocket-ink);
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 1rem;
+    background: var(--st-pocket-cream-raised);
+    box-shadow: var(--st-pocket-shadow);
+    text-shadow: none;
+}
+
+.st-pocket-quick-persona-menu[hidden] {
+    display: none;
+}
+
+.st-pocket-quick-persona-heading {
+    display: flex;
+    min-height: 3rem;
+    padding: 0.5rem 0.75rem 0.4rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--st-pocket-cream-border);
+}
+
+.st-pocket-quick-persona-heading > button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 0.75rem;
+    color: var(--st-pocket-muted);
+    background: transparent;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.st-pocket-quick-persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    gap: 8px;
+    max-height: min(23rem, calc(var(--st-pocket-visual-height, 100dvh) - 9rem));
+    padding: 0.75rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.st-pocket-quick-persona-option {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    min-height: 82px;
+    padding: 0.45rem;
+    gap: 0.35rem;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 0.85rem;
+    color: var(--st-pocket-ink);
+    background: transparent;
+    cursor: pointer;
+}
+
+.st-pocket-quick-persona-option > img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border: 2px solid transparent;
+    border-radius: 50%;
+}
+
+.st-pocket-quick-persona-option > span {
+    width: 100%;
+    overflow: hidden;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.st-pocket-quick-persona-option > i {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: none;
+    color: var(--st-pocket-apple);
+    font-size: 0.75rem;
+}
+
+.st-pocket-quick-persona-option:is(:hover, :focus-visible) {
+    border-color: rgb(163 93 99 / 38%);
+    background: var(--st-pocket-apple-soft);
+}
+
+.st-pocket-quick-persona-option.is-selected {
+    border-color: var(--st-pocket-apple);
+    background: var(--st-pocket-apple-soft);
+}
+
+.st-pocket-quick-persona-option.is-selected > i {
+    display: block;
+}
+
+.st-pocket-quick-persona-option.is-default > img {
+    border-color: var(--st-pocket-sage);
+}
+
+.st-pocket-quick-persona-option:disabled {
+    cursor: wait;
+    opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .st-pocket-quick-persona-toggle,
+    .st-pocket-quick-persona-option {
+        transition: none;
+    }
+}
+
 html.st-pocket-ui-enabled #send_form #send_but {
     color: var(--st-pocket-apple);
     background: rgb(169 99 104 / 12%);
@@ -1245,6 +1566,132 @@ html.st-pocket-ui-enabled #send_form #send_but {
 html[data-st-pocket-layout='desktop'] .st-pocket-ui-switcher {
     top: 0.5rem;
     right: 0.5rem;
+}
+
+/* Desktop utility strip: expose the mobile chat tools without duplicating
+   SillyTavern's native drawer buttons in the desktop top bar. */
+html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header {
+    position: fixed;
+    z-index: 9999;
+    top: 3.65rem;
+    right: clamp(1rem, 3vw, 2.5rem);
+    display: grid;
+    grid-template-columns: minmax(8rem, 12rem) minmax(10rem, 18rem) auto;
+    align-items: center;
+    gap: 0.5rem;
+    width: min(42rem, calc(100vw - 2rem));
+    padding: 0.4rem;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 0.9rem;
+    background: rgb(251 248 241 / 96%);
+    box-shadow: var(--st-pocket-cream-shadow);
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-mobile-header .st-pocket-native-launcher {
+    display: none;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    min-height: 2.5rem;
+    padding: 0.2rem 0.45rem;
+    border: 0;
+    border-radius: 0.7rem;
+    color: var(--st-pocket-ink);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-identity:is(:hover, [aria-expanded='true']) {
+    background: var(--st-pocket-apple-soft);
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-avatar {
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-title {
+    overflow: hidden;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-search {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.5rem;
+    padding-inline: 0.65rem;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 0.7rem;
+    color: var(--st-pocket-muted);
+    background: rgb(255 253 248 / 90%);
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-search input {
+    min-width: 0;
+    border: 0;
+    color: var(--st-pocket-ink);
+    outline: 0;
+    background: transparent;
+    font: inherit;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-context-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 4rem;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 0.7rem;
+    color: var(--st-pocket-ink);
+    background: rgb(255 253 248 / 90%);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-context-panel,
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-actions {
+    position: fixed;
+    z-index: 10003;
+    top: 7rem;
+    right: clamp(1rem, 3vw, 2.5rem);
+    width: min(20rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    border: 1px solid var(--st-pocket-cream-border);
+    border-radius: 1rem;
+    color: var(--st-pocket-ink);
+    background: rgb(255 253 248 / 98%);
+    box-shadow: 0 1rem 2.5rem rgb(49 39 33 / 22%);
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-context-panel {
+    padding: 0;
+}
+
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-actions {
+    right: min(24rem, calc(100vw - 21rem));
+    overflow: hidden auto;
+}
+
+html[data-st-pocket-layout='desktop'] #chat {
+    padding-top: 5rem;
 }
 
 /* Desktop skin: keep SillyTavern's native DOM and behavior, only refine layout. */
@@ -1631,6 +2078,18 @@ html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .
 
 /* Known extension adapter: TopInfoBar already consumes SillyTavern tokens, but
    its transparent fields need explicit surfaces for reliable contrast. */
+html.st-pocket-ui-enabled #extensionTopBar[data-st-pocket-topinfobar-hidden] {
+    position: fixed !important;
+    inset: auto auto 0 -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    pointer-events: none !important;
+}
+
 html.st-pocket-ui-enabled :is(#extensionTopBar, #extensionConnectionProfiles, #extensionSideBar) {
     color: var(--st-pocket-ink) !important;
     border-color: var(--st-pocket-cream-border) !important;
