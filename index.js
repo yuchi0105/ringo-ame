@@ -27,6 +27,18 @@ const MESSAGE_FONT_SIZE_NATIVE = 16;
 const MESSAGE_LINE_HEIGHT_MIN = 1.4;
 const MESSAGE_LINE_HEIGHT_MAX = 2;
 const MESSAGE_LINE_HEIGHT_DEFAULT = 1.6;
+const CONTEXT_ICON_SVGS = {
+    total: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.953C12.449 1.995 12 2.448 12 3v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8.11 2.79"/></svg>',
+    system: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>',
+    world: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"/><path d="M16 12h2"/><path d="M16 8h2"/><path d="M3 18a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h5a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3z"/><path d="M21 18a1 1 0 0 0 1-1V5a2 2 0 0 0-2-2h-5a3 3 0 0 0-3 3v15a3 3 0 0 1 3-3z"/></svg>',
+    character: '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg>',
+    chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2l-2 2v-2a2 2 0 0 1-2-2z"/><path d="M4 6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2l2 2v-2h6a2 2 0 0 0 2-2v-4"/></svg>',
+    persona: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>',
+    other: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/><path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9z"/></svg>',
+    remaining: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
+    prompt: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="m8 9 2 2-2 2M13 15h3"/></svg>',
+    reserve: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 10h8M8 14h5"/></svg>',
+};
 const MOBILE_VIEWPORT = globalThis.matchMedia?.('(max-width: 767px)') ?? {
     matches: globalThis.innerWidth <= 767,
 };
@@ -759,12 +771,36 @@ function createNativeDrawerLauncher() {
     toggle.setAttribute('aria-expanded', 'false');
 
     const menu = document.createElement('nav');
+    menu.id = 'st-pocket-native-menu';
     menu.className = 'st-pocket-native-menu';
     menu.setAttribute('aria-label', 'SillyTavern 功能');
     menu.hidden = true;
 
+    const scrim = document.createElement('button');
+    scrim.type = 'button';
+    scrim.className = 'st-pocket-drawer-scrim';
+    scrim.setAttribute('aria-label', '關閉主選單');
+    scrim.hidden = true;
+
+    const sheetHandle = document.createElement('span');
+    sheetHandle.className = 'st-pocket-sheet-handle';
+    sheetHandle.setAttribute('aria-hidden', 'true');
+    menu.append(sheetHandle);
+
+    const sheetHeader = document.createElement('div');
+    sheetHeader.className = 'st-pocket-sheet-header';
+    const sheetTitle = document.createElement('strong');
+    sheetTitle.textContent = 'SillyTavern 功能';
+    const sheetClose = document.createElement('button');
+    sheetClose.type = 'button';
+    sheetClose.className = 'menu_button st-pocket-sheet-close fa-solid fa-xmark';
+    sheetClose.setAttribute('aria-label', '關閉主選單');
+    sheetHeader.append(sheetTitle, sheetClose);
+    menu.append(sheetHeader);
+
     const closeMenu = () => {
         menu.hidden = true;
+        scrim.hidden = true;
         toggle.setAttribute('aria-expanded', 'false');
     };
 
@@ -782,8 +818,13 @@ function createNativeDrawerLauncher() {
         const opening = menu.hidden;
         if (opening) syncNativeActions();
         menu.hidden = !opening;
+        scrim.hidden = !opening;
         toggle.setAttribute('aria-expanded', String(opening));
     });
+
+    scrim.addEventListener('click', closeMenu);
+    sheetClose.addEventListener('click', closeMenu);
+    toggle.setAttribute('aria-controls', menu.id);
 
     for (const [key, label, icon, selector] of NATIVE_DRAWERS) {
         const button = document.createElement('button');
@@ -835,15 +876,215 @@ function createNativeDrawerLauncher() {
     menu.append(modeSection);
 
     launcher.append(toggle, menu);
-    document.body.append(launcher);
+
+    const mobileHeader = document.createElement('header');
+    mobileHeader.className = 'st-pocket-mobile-header';
+    mobileHeader.dataset.stPocketUi = 'mobile-header';
+
+    const identity = document.createElement('div');
+    identity.className = 'st-pocket-chat-identity';
+    const avatar = document.createElement('img');
+    avatar.className = 'st-pocket-chat-avatar';
+    avatar.alt = '';
+    const title = document.createElement('span');
+    title.className = 'st-pocket-chat-title';
+    title.textContent = 'SillyTavern';
+    identity.append(avatar, title);
+
+    const search = document.createElement('label');
+    search.className = 'st-pocket-chat-search';
+    search.innerHTML = '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'search';
+    searchInput.placeholder = '搜尋目前對話';
+    searchInput.setAttribute('aria-label', '搜尋目前對話');
+    search.append(searchInput);
+
+    const contextStats = createContextUsageStats();
+
+    const syncChatIdentity = () => {
+        const lastCharacterMessage = [...document.querySelectorAll('#chat .mes')]
+            .reverse()
+            .find((message) => message.getAttribute('is_user') !== 'true');
+        const sourceAvatar = lastCharacterMessage?.querySelector('.avatar img, img.avatar');
+        const sourceName = lastCharacterMessage?.querySelector('.name_text, .ch_name, .mes_name');
+        if (sourceAvatar?.src) {
+            avatar.src = sourceAvatar.src;
+            avatar.hidden = false;
+        } else {
+            avatar.removeAttribute('src');
+            avatar.hidden = true;
+        }
+        title.textContent = sourceName?.textContent?.trim() || 'SillyTavern';
+    };
+
+    const applyChatSearch = () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        document.querySelectorAll('#chat .mes').forEach((message) => {
+            const text = message.querySelector('.mes_text')?.textContent?.toLocaleLowerCase() ?? '';
+            message.classList.toggle('st-pocket-search-hidden', Boolean(query) && !text.includes(query));
+        });
+    };
+    searchInput.addEventListener('input', applyChatSearch);
+    searchInput.addEventListener('search', applyChatSearch);
+
+    mobileHeader.append(identity, search, contextStats, launcher);
+    document.body.append(scrim, mobileHeader, menu);
+    syncChatIdentity();
+    const chatObserver = new MutationObserver(() => {
+        syncChatIdentity();
+        applyChatSearch();
+    });
+    const chat = document.getElementById('chat');
+    if (chat) chatObserver.observe(chat, { childList: true, subtree: true });
     syncNativeActions();
 
     document.addEventListener('click', (event) => {
-        if (!launcher.contains(event.target)) closeMenu();
+        if (!launcher.contains(event.target) && !menu.contains(event.target)) closeMenu();
     });
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') closeMenu();
     });
+}
+
+function createContextUsageStats() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'st-pocket-context-stats';
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'st-pocket-context-toggle';
+    toggle.setAttribute('aria-label', '上下文使用統計：尚無資料');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.innerHTML = `${CONTEXT_ICON_SVGS.total}<span>--%</span>`;
+
+    const panel = document.createElement('section');
+    panel.className = 'st-pocket-context-panel';
+    panel.hidden = true;
+    panel.innerHTML = `
+        <div class="st-pocket-context-heading">
+            <div><strong>上下文使用統計</strong><small>最近一次實際送給 AI 的內容</small></div>
+            <button type="button" class="st-pocket-context-close" aria-label="關閉上下文統計">×</button>
+        </div>
+        <div class="st-pocket-context-total-line">
+            <span class="st-pocket-context-total">尚無資料</span>
+        </div>
+        <div class="st-pocket-context-metrics">
+            <div class="st-pocket-context-metric" data-metric="usage">${CONTEXT_ICON_SVGS.total}<span>總使用率</span><strong>--%</strong></div>
+            <div class="st-pocket-context-metric" data-metric="remaining">${CONTEXT_ICON_SVGS.remaining}<span>剩餘</span><strong>--</strong></div>
+            <div class="st-pocket-context-metric" data-metric="prompt">${CONTEXT_ICON_SVGS.prompt}<span>Prompt</span><strong>-- / --</strong></div>
+            <div class="st-pocket-context-metric" data-metric="reserve">${CONTEXT_ICON_SVGS.reserve}<span>回覆預留</span><strong>--</strong></div>
+        </div>
+        <div class="st-pocket-context-breakdown"></div>
+        <p class="st-pocket-context-note">分項取自 SillyTavern 最近一次 Prompt；總使用率包含本次回覆預留空間。</p>`;
+
+    const closePanel = () => {
+        panel.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+    toggle.addEventListener('click', () => {
+        const opening = panel.hidden;
+        panel.hidden = !opening;
+        toggle.setAttribute('aria-expanded', String(opening));
+    });
+    panel.querySelector('.st-pocket-context-close').addEventListener('click', closePanel);
+    document.addEventListener('click', (event) => {
+        if (!wrapper.contains(event.target)) closePanel();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closePanel();
+    });
+    wrapper.append(toggle, panel);
+
+    const formatTokens = (value) => new Intl.NumberFormat('zh-TW').format(Math.max(0, Math.round(Number(value) || 0)));
+    const render = ({ total, maximum, reserved = 0, categories } = {}) => {
+        if (!total || !maximum) return;
+        const promptBudget = Math.max(0, maximum - reserved);
+        const usedContext = Math.min(maximum, total + reserved);
+        const percent = Math.min(100, Math.round((usedContext / maximum) * 100));
+        const level = percent >= 90 ? 'danger' : percent >= 75 ? 'warning' : 'normal';
+        wrapper.dataset.level = level;
+        toggle.querySelector('span').textContent = `${percent}%`;
+        toggle.setAttribute('aria-label', `上下文使用統計：已使用 ${percent}%`);
+        panel.querySelector('.st-pocket-context-total').textContent = `${formatTokens(usedContext)} / ${formatTokens(maximum)} Token`;
+        panel.querySelector('[data-metric="usage"] strong').textContent = `${percent}%`;
+        panel.querySelector('[data-metric="remaining"] strong').textContent = formatTokens(maximum - usedContext);
+        panel.querySelector('[data-metric="prompt"] strong').textContent = `${formatTokens(total)} / ${formatTokens(promptBudget)}`;
+        panel.querySelector('[data-metric="reserve"] strong').textContent = formatTokens(reserved);
+        const breakdown = panel.querySelector('.st-pocket-context-breakdown');
+        breakdown.replaceChildren(...categories.map(({ key, label, value }) => {
+            const row = document.createElement('div');
+            const categoryPercent = total ? Math.round((value / total) * 100) : 0;
+            row.className = 'st-pocket-context-row';
+            row.innerHTML = `${CONTEXT_ICON_SVGS[key]}<span>${label}</span><div class="st-pocket-context-row-bar" aria-hidden="true"><i style="width:${Math.min(100, categoryPercent)}%"></i></div><strong>${formatTokens(value)}</strong>`;
+            return row;
+        }));
+    };
+
+    const update = async () => {
+        try {
+            const [{ itemizedPrompts, itemizedParams }, { getMaxContextTokens }] = await Promise.all([
+                import('/scripts/itemized-prompts.js'),
+                import('/script.js'),
+            ]);
+            const latest = itemizedPrompts.at(-1);
+            if (!latest) return;
+            const index = itemizedPrompts.length - 1;
+            const params = await itemizedParams(itemizedPrompts, index, Number(latest.mesId));
+            const isOpenAi = latest.main_api === 'openai';
+            const total = Number(params.finalPromptTokens || params.totalTokensInPrompt || 0);
+            let categories = isOpenAi
+                ? [
+                    { key: 'system', label: '系統提示', value: Number(params.oaiSystemTokens || 0) + Number(params.oaiBiasTokens || 0) },
+                    { key: 'world', label: '世界書', value: Number(params.worldInfoStringTokens || 0) },
+                    { key: 'character', label: '角色設定', value: Number(params.oaiPromptTokens || 0) + Number(params.beforeScenarioAnchorTokens || 0) + Number(params.afterScenarioAnchorTokens || 0) },
+                    { key: 'chat', label: '聊天紀錄', value: Number(params.ActualChatHistoryTokens || 0) },
+                ]
+                : [
+                    { key: 'system', label: '系統提示', value: Number(params.promptBiasTokens || 0) },
+                    { key: 'world', label: '世界書', value: Number(params.worldInfoStringTokens || 0) },
+                    { key: 'character', label: '角色設定', value: Number(params.storyStringTokens || 0) + Number(params.examplesStringTokens || 0) },
+                    { key: 'chat', label: '聊天紀錄', value: Number(params.ActualChatHistoryTokens || 0) + Number(params.allAnchorsTokens || 0) },
+                ];
+            if (isOpenAi) {
+                try {
+                    const { promptManager } = await import('/scripts/openai.js');
+                    const counts = promptManager?.tokenHandler?.getCounts?.();
+                    if (counts && typeof counts === 'object') {
+                        const count = (key) => Math.max(0, Number(counts[key]) || 0);
+                        const known = {
+                            chat: count('chatHistory'),
+                            world: count('worldInfoBefore') + count('worldInfoAfter'),
+                            character: count('charDescription') + count('charPersonality') + count('scenario'),
+                            persona: count('personaDescription'),
+                        };
+                        const knownTotal = Object.values(known).reduce((sum, value) => sum + value, 0);
+                        categories = [
+                            { key: 'chat', label: '聊天紀錄', value: known.chat },
+                            { key: 'world', label: '世界書', value: known.world },
+                            { key: 'character', label: '角色設定', value: known.character },
+                            { key: 'persona', label: 'Persona', value: known.persona },
+                            { key: 'other', label: '其他 Prompt', value: Math.max(0, total - knownTotal) },
+                        ];
+                    }
+                } catch (error) {
+                    console.debug('[ST Pocket UI] Detailed Prompt Manager breakdown is unavailable.', error);
+                }
+            }
+            const context = globalThis.SillyTavern?.getContext?.();
+            const reserved = Number(context?.chatCompletionSettings?.openai_max_tokens || 0);
+            render({ total, maximum: Number(getMaxContextTokens()), reserved, categories });
+        } catch (error) {
+            console.warn('[ST Pocket UI] Context usage statistics are unavailable.', error);
+        }
+    };
+    update();
+    Promise.resolve().then(() => {
+        const context = globalThis.SillyTavern?.getContext?.();
+        context?.eventSource?.on?.('itemized_prompts_saved', update);
+        context?.eventSource?.on?.('chat_id_changed', update);
+    });
+    return wrapper;
 }
 
 function enableIPhoneSafeArea() {
