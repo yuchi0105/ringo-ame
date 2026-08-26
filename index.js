@@ -1031,6 +1031,7 @@ function createNativeDrawerLauncher() {
     const closeMenu = () => {
         menu.hidden = true;
         scrim.hidden = true;
+        document.documentElement.dataset.stPocketMenu = 'closed';
         toggle.setAttribute('aria-expanded', 'false');
     };
 
@@ -1049,6 +1050,7 @@ function createNativeDrawerLauncher() {
         if (opening) syncNativeActions();
         menu.hidden = !opening;
         scrim.hidden = !opening;
+        document.documentElement.dataset.stPocketMenu = opening ? 'open' : 'closed';
         toggle.setAttribute('aria-expanded', String(opening));
     });
 
@@ -1496,6 +1498,7 @@ function setupChatActionExtensions(panel, closePanel) {
         || source.getAttribute('title')
         || source.textContent?.trim()
         || '';
+    const isContainerToggle = (source) => /^(?:切換|開啟|關閉)?(?:左側|右側)?側邊欄$/u.test(getActionLabel(source).replace(/\s+/gu, ''));
     const isAvailable = (source) => {
         const style = globalThis.getComputedStyle?.(source);
         return !source.hidden
@@ -1512,6 +1515,7 @@ function setupChatActionExtensions(panel, closePanel) {
             .filter((source) => !source.parentElement?.closest(actionSelector))
             .filter((source) => !excludedTopInfoBarIds.has(source.id))
             .filter((source) => !['extensionTopBarChatName', 'extensionTopBarSearchInput'].includes(source.id))
+            .filter((source) => !isContainerToggle(source))
             .filter((source) => getActionLabel(source));
         const fragment = document.createDocumentFragment();
         for (const source of sources) {

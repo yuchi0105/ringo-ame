@@ -1182,6 +1182,14 @@ html[data-st-pocket-layout='mobile'] body {
     padding-left: var(--st-pocket-safe-left);
 }
 
+/* Opening Pocket UI's launcher must not replace the current chat/home
+   wallpaper with SillyTavern's default body surface. The menu itself remains
+   opaque; only the page behind its scrim stays visible. */
+html[data-st-pocket-layout='mobile'][data-st-pocket-menu='open'] :is(body, #sheld) {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
 html[data-st-pocket-layout='mobile'] #chat,
 html[data-st-pocket-layout='mobile'] #send_form {
     width: 100%;
@@ -1256,11 +1264,49 @@ html[data-st-pocket-layout='mobile'] #send_form {
     margin: 0.45rem auto 0.55rem;
     border: 0;
     border-radius: 1rem;
-    align-items: center;
+    align-items: stretch;
     background: rgb(251 248 241 / 100%);
     padding-right: max(0.35rem, var(--st-pocket-safe-right));
     padding-bottom: max(0.35rem, var(--st-pocket-safe-bottom));
     padding-left: max(0.35rem, var(--st-pocket-safe-left));
+}
+
+/* Astra-inspired two-tier composer: writing stays on the first row while all
+   native and extension actions share the lower row. DOM nodes are not cloned,
+   so SillyTavern and third-party click handlers keep working. */
+html.st-pocket-ui-enabled #send_form #nonQRFormItems {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 0.35rem 0.5rem;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+}
+
+html.st-pocket-ui-enabled #send_form #send_textarea {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+}
+
+html.st-pocket-ui-enabled #send_form #leftSendForm {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+html.st-pocket-ui-enabled #send_form #rightSendForm {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 html[data-st-pocket-layout='mobile'] #send_textarea {
@@ -2167,6 +2213,13 @@ html.st-pocket-ui-enabled select:not(#chat .mes_text *) {
     text-shadow: none !important;
 }
 
+/* Mobile must fully neutralize legacy SillyTavern theme shadows, including
+   message-renderer descendants that are intentionally exempt on desktop. */
+html.st-pocket-ui-enabled[data-st-pocket-layout='mobile'] body,
+html.st-pocket-ui-enabled[data-st-pocket-layout='mobile'] body * {
+    text-shadow: none !important;
+}
+
 /* Keep message typography identical in mobile and desktop layouts without
    forcing styles onto MVU/regex-rendered descendants inside the message body. */
 html.st-pocket-ui-enabled #chat .mes_text {
@@ -2240,6 +2293,29 @@ html.st-pocket-ui-enabled #extensions_settings2 .inline-drawer-toggle.inline-dra
     text-shadow: none !important;
     filter: none !important;
     opacity: 1 !important;
+}
+
+/* The Pocket settings entry is a native inline-drawer row. Global button/SVG
+   rules must not turn its chevron into a full-card control. */
+html.st-pocket-ui-enabled #st-pocket-ui-settings > .inline-drawer > .inline-drawer-toggle {
+    display: flex !important;
+    min-height: 2.75rem;
+    padding: 0.45rem 0.65rem !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-radius: 0.65rem !important;
+}
+
+html.st-pocket-ui-enabled #st-pocket-ui-settings > .inline-drawer > .inline-drawer-toggle .inline-drawer-icon {
+    width: 1rem !important;
+    min-width: 1rem !important;
+    height: 1rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex: 0 0 1rem;
+    font-size: 1rem !important;
+    line-height: 1 !important;
 }
 
 html.st-pocket-ui-enabled :is(
@@ -2422,6 +2498,12 @@ html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer
     background-image: none !important;
     box-shadow: none !important;
     filter: none !important;
+}
+
+html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder :is(.drawer, .drawer-header, .drawer-toggle, .drawer-icon) {
+    border-color: transparent !important;
+    outline: 0 !important;
+    box-shadow: none !important;
 }
 
 html.st-pocket-ui-enabled #top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):hover,
