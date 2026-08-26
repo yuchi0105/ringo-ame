@@ -1310,15 +1310,7 @@ html[data-st-pocket-layout='mobile'] #send_textarea {
 
 html[data-st-pocket-layout='mobile'] #send_form #leftSendForm {
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    overscroll-behavior-inline: contain;
-    -webkit-overflow-scrolling: touch;
-}
-
-html[data-st-pocket-layout='mobile'] #send_form #leftSendForm::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
 }
 
 html[data-st-pocket-layout='mobile'] #send_form #rightSendForm {
@@ -1328,8 +1320,8 @@ html[data-st-pocket-layout='mobile'] #send_form #rightSendForm {
 
 html[data-st-pocket-layout='mobile'] #send_form :is(#leftSendForm, #rightSendForm) > div {
     box-sizing: border-box;
-    width: 2.75rem;
-    min-width: 2.75rem;
+    width: clamp(2.25rem, 10vw, 2.75rem);
+    min-width: clamp(2.25rem, 10vw, 2.75rem);
     height: 2.75rem;
     min-height: 2.75rem;
     padding: 0.6rem;
@@ -2399,7 +2391,7 @@ html.st-pocket-ui-enabled :is(input, textarea, .text_pole):not(#chat .mes_text *
     opacity: 1 !important;
 }
 
-html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .mes_text *):not(:disabled) {
+html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .mes_text *):not(.st-pocket-drawer-scrim):not(:disabled) {
     color: var(--st-pocket-apple-strong) !important;
     border-color: rgb(163 93 99 / 38%) !important;
     background-color: var(--st-pocket-field) !important;
@@ -2408,7 +2400,7 @@ html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .
     filter: none !important;
 }
 
-html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .mes_text *):not(:disabled):is(:hover, :focus-visible, [aria-pressed='true'], .selected, .active) {
+html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .mes_text *):not(.st-pocket-drawer-scrim):not(:disabled):is(:hover, :focus-visible, [aria-pressed='true'], .selected, .active) {
     color: var(--st-pocket-apple-strong) !important;
     border-color: rgb(163 93 99 / 58%) !important;
     background-color: var(--st-pocket-apple-soft) !important;
