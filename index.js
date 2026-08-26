@@ -12,6 +12,7 @@ const EXTENSION_ENABLED_STORAGE_KEY = 'st-pocket-ui-enabled';
 const FLOATING_BUTTON_ENABLED_STORAGE_KEY = 'st-pocket-ui-floating-button-enabled';
 const FLOATING_BUTTON_POSITION_STORAGE_KEY = 'st-pocket-ui-floating-button-position';
 const DESKTOP_CHAT_BAR_POSITION_STORAGE_KEY = 'st-pocket-ui-desktop-chat-bar-position';
+const DESKTOP_CHAT_BAR_COLLAPSED_STORAGE_KEY = 'st-pocket-ui-desktop-chat-bar-collapsed';
 const DEFAULT_BACKGROUND_ENABLED_STORAGE_KEY = 'st-pocket-ui-default-background-enabled';
 const FONT_FAMILY_STORAGE_KEY = 'st-pocket-ui-font-family';
 const THEME_STORAGE_KEY = 'st-pocket-ui-theme';
@@ -1121,6 +1122,14 @@ function createNativeDrawerLauncher() {
     dragHandle.setAttribute('aria-label', '移動聊天工具列');
     dragHandle.title = '拖曳移動；方向鍵微調；雙擊復位';
 
+    const collapseButton = document.createElement('button');
+    collapseButton.type = 'button';
+    collapseButton.className = 'st-pocket-chat-bar-collapse';
+    collapseButton.innerHTML = lucideIcon('chevronUp');
+    collapseButton.setAttribute('aria-label', '收合聊天工具列');
+    collapseButton.setAttribute('aria-expanded', 'true');
+    collapseButton.title = '收合聊天工具列';
+
     const identity = document.createElement('button');
     identity.type = 'button';
     identity.className = 'st-pocket-chat-identity';
@@ -1278,8 +1287,31 @@ function createNativeDrawerLauncher() {
         searchInput.focus();
     });
 
-    mobileHeader.append(dragHandle, identity, search, contextStats, launcher);
+    mobileHeader.append(dragHandle, collapseButton, identity, search, contextStats, launcher);
     document.body.append(scrim, mobileHeader, chatActions, menu, latestButton);
+
+    const applyChatBarCollapsed = (collapsed, { persist = true } = {}) => {
+        mobileHeader.classList.toggle('is-collapsed', collapsed);
+        collapseButton.innerHTML = lucideIcon(collapsed ? 'chevronDown' : 'chevronUp');
+        collapseButton.setAttribute('aria-label', collapsed ? '打開聊天工具列' : '收合聊天工具列');
+        collapseButton.setAttribute('aria-expanded', String(!collapsed));
+        collapseButton.title = collapsed ? '打開聊天工具列' : '收合聊天工具列';
+        if (persist) {
+            try {
+                localStorage.setItem(DESKTOP_CHAT_BAR_COLLAPSED_STORAGE_KEY, String(collapsed));
+            } catch {
+                // Keep the control functional when storage is unavailable.
+            }
+        }
+    };
+    try {
+        applyChatBarCollapsed(localStorage.getItem(DESKTOP_CHAT_BAR_COLLAPSED_STORAGE_KEY) === 'true', { persist: false });
+    } catch {
+        applyChatBarCollapsed(false, { persist: false });
+    }
+    collapseButton.addEventListener('click', () => {
+        applyChatBarCollapsed(!mobileHeader.classList.contains('is-collapsed'));
+    });
 
     let chatBarDrag = null;
     const clampChatBarPosition = ({ left, top }) => {
