@@ -232,10 +232,10 @@ html.st-pocket-ui-enabled.st-pocket-default-background #bg2 {
     text-align: center;
 }
 
-.st-pocket-mode-menu .st-pocket-ui-mode > i:first-child {
+.st-pocket-mode-menu .st-pocket-ui-mode > svg:first-child {
+    width: 1rem;
+    height: 1rem;
     color: var(--st-pocket-apple);
-    font-size: 1rem;
-    text-align: center;
 }
 
 .st-pocket-mode-menu .st-pocket-ui-mode > span {
@@ -254,7 +254,9 @@ html.st-pocket-ui-enabled.st-pocket-default-background #bg2 {
 }
 
 .st-pocket-mode-check {
-    display: none;
+    width: 0.9rem;
+    height: 0.9rem;
+    opacity: 0;
 }
 
 .st-pocket-mode-menu .st-pocket-ui-mode:hover {
@@ -293,6 +295,26 @@ html.st-pocket-ui-enabled.st-pocket-default-background #bg2 {
     box-shadow: 0 0.65rem 1.8rem rgb(0 0 0 / 28%);
     backdrop-filter: none;
     transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.st-pocket-launcher-toggle svg,
+.st-pocket-sheet-close svg,
+.st-pocket-chat-search svg,
+.st-pocket-mode-menu .st-pocket-ui-mode svg,
+.st-pocket-quick-persona-menu svg,
+.st-pocket-quick-persona-toggle svg,
+.st-pocket-ui-settings .inline-drawer-icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.st-pocket-launcher-toggle > svg,
+.st-pocket-sheet-close > svg {
+    width: 1.15rem;
+    height: 1.15rem;
 }
 
 .st-pocket-launcher-toggle:hover,
@@ -901,6 +923,13 @@ html[data-st-pocket-layout='mobile'] .st-pocket-chat-search {
     background: rgb(255 253 248 / 88%);
 }
 
+html[data-st-pocket-layout='mobile'] .st-pocket-chat-search > svg:first-child,
+html[data-st-pocket-layout='desktop'] .st-pocket-chat-search > svg:first-child {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 1rem;
+}
+
 html[data-st-pocket-layout='mobile'] .st-pocket-chat-search input {
     width: 100%;
     min-width: 0;
@@ -910,6 +939,59 @@ html[data-st-pocket-layout='mobile'] .st-pocket-chat-search input {
     background: transparent;
     font: inherit;
     font-size: 16px;
+}
+
+.st-pocket-chat-search-status {
+    flex: 0 0 auto;
+    min-width: 2.7rem;
+    color: var(--st-pocket-muted);
+    font-size: 0.72rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.st-pocket-chat-search:not(.has-results) .st-pocket-chat-search-status:empty,
+.st-pocket-chat-search:not(:focus-within):not(.has-results) :is(.st-pocket-chat-search-nav, .st-pocket-chat-search-clear) {
+    display: none;
+}
+
+.st-pocket-chat-search :is(.st-pocket-chat-search-nav, .st-pocket-chat-search-clear) {
+    display: inline-grid;
+    width: 1.75rem;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    min-height: 1.75rem;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 0.5rem;
+    color: var(--st-pocket-muted);
+    background: transparent;
+}
+
+.st-pocket-chat-search :is(.st-pocket-chat-search-nav, .st-pocket-chat-search-clear) svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.st-pocket-chat-search :is(.st-pocket-chat-search-nav, .st-pocket-chat-search-clear):hover,
+.st-pocket-chat-search :is(.st-pocket-chat-search-nav, .st-pocket-chat-search-clear):focus-visible {
+    color: var(--st-pocket-ink);
+    background: rgb(226 217 198 / 42%);
+}
+
+.st-pocket-chat-search .st-pocket-chat-search-nav:disabled {
+    opacity: 0.4;
+}
+
+#chat .mes.st-pocket-search-current {
+    outline: 2px solid var(--st-pocket-accent, #9c6958);
+    outline-offset: -2px;
+    background: rgb(255 236 185 / 18%);
+}
+
+#chat .mes.st-pocket-search-reveal {
+    display: flex !important;
 }
 
 html[data-st-pocket-layout='mobile'] .st-pocket-drawer-scrim:not([hidden]) {
@@ -1005,10 +1087,6 @@ html[data-st-pocket-layout='mobile'] .st-pocket-sheet-close {
     border-radius: 0.75rem;
     color: var(--st-pocket-muted);
     background: transparent;
-}
-
-html[data-st-pocket-layout='mobile'] #chat .mes.st-pocket-search-hidden {
-    display: none;
 }
 
 @keyframes st-pocket-sheet-enter {
@@ -1418,7 +1496,7 @@ html.st-pocket-ui-enabled #send_form #leftSendForm > .st-pocket-quick-persona:is
     box-shadow: 0 0.2rem 0.55rem rgb(89 70 54 / 18%);
 }
 
-.st-pocket-quick-persona-toggle > i {
+.st-pocket-quick-persona-toggle > svg {
     position: absolute;
     right: 0;
     bottom: 1px;
@@ -1430,7 +1508,8 @@ html.st-pocket-ui-enabled #send_form #leftSendForm > .st-pocket-quick-persona:is
     border: 1px solid #fffdf8;
     border-radius: 50%;
     background: var(--st-pocket-apple);
-    font-size: 9px;
+    padding: 2px;
+    stroke-width: 2.5;
 }
 
 .st-pocket-quick-persona-toggle:focus-visible {
@@ -1472,8 +1551,12 @@ html.st-pocket-ui-enabled #send_form #leftSendForm > .st-pocket-quick-persona:is
     border-radius: 0.75rem;
     color: var(--st-pocket-muted);
     background: transparent;
-    font-size: 1.4rem;
     cursor: pointer;
+}
+
+.st-pocket-quick-persona-heading > button svg {
+    width: 1.15rem;
+    height: 1.15rem;
 }
 
 .st-pocket-quick-persona-grid {
@@ -1519,13 +1602,15 @@ html.st-pocket-ui-enabled #send_form #leftSendForm > .st-pocket-quick-persona:is
     white-space: nowrap;
 }
 
-.st-pocket-quick-persona-option > i {
+.st-pocket-quick-persona-option > svg {
     position: absolute;
     top: 4px;
     right: 4px;
     display: none;
     color: var(--st-pocket-apple);
-    font-size: 0.75rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    stroke-width: 2.5;
 }
 
 .st-pocket-quick-persona-option:is(:hover, :focus-visible) {
@@ -1538,7 +1623,7 @@ html.st-pocket-ui-enabled #send_form #leftSendForm > .st-pocket-quick-persona:is
     background: var(--st-pocket-apple-soft);
 }
 
-.st-pocket-quick-persona-option.is-selected > i {
+.st-pocket-quick-persona-option.is-selected > svg {
     display: block;
 }
 
@@ -1628,7 +1713,7 @@ html[data-st-pocket-layout='desktop'] .st-pocket-chat-title {
 
 html[data-st-pocket-layout='desktop'] .st-pocket-chat-search {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(4rem, 1fr) auto auto auto auto;
     align-items: center;
     gap: 0.4rem;
     min-height: 2.5rem;

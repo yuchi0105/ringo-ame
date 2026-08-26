@@ -1,4 +1,4 @@
-import { eventSource, event_types, getThumbnailUrl } from '../../../../script.js';
+import { chat, eventSource, event_types, getThumbnailUrl, showMoreMessages } from '../../../../script.js';
 import { power_user } from '../../../power-user.js';
 import { getUserAvatar, getUserAvatars, setUserAvatar, user_avatar } from '../../../personas.js';
 
@@ -44,6 +44,28 @@ const CONTEXT_ICON_SVGS = {
     reserve: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 10h8M8 14h5"/></svg>',
     connection: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v6M8 5h8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M8 14h.01M12 14h4"/></svg>',
 };
+const LUCIDE_ICONS = {
+    check: '<path d="m20 6-11 11-5-5"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
+    chevronUp: '<path d="m18 15-6-6-6 6"/>',
+    desktop: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+    menu: '<line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/>',
+    mobile: '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    sparkles: '<path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+};
+
+function lucideIcon(name, className = '') {
+    const classAttribute = className ? ` class="${className}"` : '';
+    return `<svg${classAttribute} viewBox="0 0 24 24" aria-hidden="true" focusable="false">${LUCIDE_ICONS[name]}</svg>`;
+}
+
+function createLucideIcon(name, className = '') {
+    const template = document.createElement('template');
+    template.innerHTML = lucideIcon(name, className);
+    return template.content.firstElementChild;
+}
 const MOBILE_VIEWPORT = globalThis.matchMedia?.('(max-width: 767px)') ?? {
     matches: globalThis.innerWidth <= 767,
 };
@@ -83,21 +105,21 @@ function createQuickPersonaSwitcher() {
     toggle.setAttribute('aria-label', '快速切換 Persona');
     toggle.setAttribute('aria-haspopup', 'dialog');
     toggle.setAttribute('aria-expanded', 'false');
-    toggle.innerHTML = '<img src="/img/ai4.png" alt=""><i class="fa-solid fa-caret-up" aria-hidden="true"></i>';
+    toggle.innerHTML = `<img src="/img/ai4.png" alt="">${lucideIcon('chevronUp', 'st-pocket-persona-chevron')}`;
 
     const menu = document.createElement('section');
     menu.className = 'st-pocket-quick-persona-menu';
     menu.hidden = true;
     menu.setAttribute('role', 'dialog');
     menu.setAttribute('aria-label', '選擇 Persona');
-    menu.innerHTML = '<div class="st-pocket-quick-persona-heading"><strong>快速切換 Persona</strong><button type="button" aria-label="關閉 Persona 選單">×</button></div><div class="st-pocket-quick-persona-grid"></div>';
+    menu.innerHTML = `<div class="st-pocket-quick-persona-heading"><strong>快速切換 Persona</strong><button type="button" aria-label="關閉 Persona 選單">${lucideIcon('x')}</button></div><div class="st-pocket-quick-persona-grid"></div>`;
 
     const toggleImage = toggle.querySelector('img');
     const grid = menu.querySelector('.st-pocket-quick-persona-grid');
     const close = () => {
         menu.hidden = true;
         toggle.setAttribute('aria-expanded', 'false');
-        toggle.querySelector('i').classList.replace('fa-caret-down', 'fa-caret-up');
+        toggle.querySelector('.st-pocket-persona-chevron')?.replaceWith(createLucideIcon('chevronUp', 'st-pocket-persona-chevron'));
     };
     const positionMenu = () => {
         if (menu.hidden) return;
@@ -133,7 +155,7 @@ function createQuickPersonaSwitcher() {
                 button.className = 'st-pocket-quick-persona-option';
                 button.dataset.personaAvatar = avatarId;
                 button.setAttribute('aria-label', personaTitle ? `${personaName}，${personaTitle}` : personaName);
-                button.innerHTML = '<img alt=""><span></span><i class="fa-solid fa-check" aria-hidden="true"></i>';
+                button.innerHTML = `<img alt=""><span></span>${lucideIcon('check')}`;
                 button.querySelector('img').src = getPersonaImageUrl(avatarId);
                 button.querySelector('span').textContent = personaName;
                 button.classList.toggle('is-default', avatarId === power_user.default_persona);
@@ -164,7 +186,7 @@ function createQuickPersonaSwitcher() {
     const open = async () => {
         menu.hidden = false;
         toggle.setAttribute('aria-expanded', 'true');
-        toggle.querySelector('i').classList.replace('fa-caret-up', 'fa-caret-down');
+        toggle.querySelector('.st-pocket-persona-chevron')?.replaceWith(createLucideIcon('chevronDown', 'st-pocket-persona-chevron'));
         await renderPersonas();
         positionMenu();
         menu.querySelector('.is-selected, .st-pocket-quick-persona-option')?.focus({ preventScroll: true });
@@ -571,7 +593,7 @@ function createExtensionSettings() {
         <div class="inline-drawer">
             <div class="inline-drawer-toggle inline-drawer-header">
                 <b>ST Pocket UI</b>
-                <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+                ${lucideIcon('chevronDown', 'inline-drawer-icon down')}
             </div>
             <div class="inline-drawer-content">
                 <div class="st-pocket-setting-group st-pocket-enabled-setting">
@@ -804,9 +826,9 @@ function createModeSwitcher() {
     };
 
     const modes = [
-        ['auto', '自動', '依視窗寬度切換', 'fa-wand-magic-sparkles'],
-        ['mobile', '手機', '使用單欄觸控版面', 'fa-mobile-screen-button'],
-        ['desktop', '電腦', '保留完整桌面配置', 'fa-display'],
+        ['auto', '自動', '依視窗寬度切換', 'sparkles'],
+        ['mobile', '手機', '使用單欄觸控版面', 'mobile'],
+        ['desktop', '電腦', '保留完整桌面配置', 'desktop'],
     ];
 
     for (const [mode, label, description, icon] of modes) {
@@ -814,7 +836,7 @@ function createModeSwitcher() {
         button.type = 'button';
         button.className = 'menu_button st-pocket-ui-mode';
         button.dataset.stPocketMode = mode;
-        button.innerHTML = `<i class="fa-solid ${icon}" aria-hidden="true"></i><span><strong></strong><small></small></span><i class="fa-solid fa-check st-pocket-mode-check" aria-hidden="true"></i>`;
+        button.innerHTML = `${lucideIcon(icon)}<span><strong></strong><small></small></span>${lucideIcon('check', 'st-pocket-mode-check')}`;
         button.querySelector('strong').textContent = label;
         button.querySelector('small').textContent = description;
         button.addEventListener('click', () => applyMode(mode));
@@ -925,7 +947,8 @@ function createNativeDrawerLauncher() {
 
     const toggle = document.createElement('button');
     toggle.type = 'button';
-    toggle.className = 'menu_button st-pocket-launcher-toggle fa-solid fa-bars';
+    toggle.className = 'menu_button st-pocket-launcher-toggle';
+    toggle.innerHTML = lucideIcon('menu');
     toggle.setAttribute('aria-label', '開啟 SillyTavern 功能');
     toggle.setAttribute('aria-expanded', 'false');
 
@@ -952,7 +975,8 @@ function createNativeDrawerLauncher() {
     sheetTitle.textContent = 'SillyTavern 功能';
     const sheetClose = document.createElement('button');
     sheetClose.type = 'button';
-    sheetClose.className = 'menu_button st-pocket-sheet-close fa-solid fa-xmark';
+    sheetClose.className = 'menu_button st-pocket-sheet-close';
+    sheetClose.innerHTML = lucideIcon('x');
     sheetClose.setAttribute('aria-label', '關閉主選單');
     sheetHeader.append(sheetTitle, sheetClose);
     menu.append(sheetHeader);
@@ -1055,14 +1079,32 @@ function createNativeDrawerLauncher() {
 
     const chatActions = createChatActions(identity);
 
-    const search = document.createElement('label');
+    const search = document.createElement('div');
     search.className = 'st-pocket-chat-search';
-    search.innerHTML = '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+    search.innerHTML = lucideIcon('search');
     const searchInput = document.createElement('input');
     searchInput.type = 'search';
     searchInput.placeholder = '搜尋目前對話';
     searchInput.setAttribute('aria-label', '搜尋目前對話');
-    search.append(searchInput);
+    const searchStatus = document.createElement('output');
+    searchStatus.className = 'st-pocket-chat-search-status';
+    searchStatus.setAttribute('aria-live', 'polite');
+    const previousResult = document.createElement('button');
+    previousResult.type = 'button';
+    previousResult.className = 'st-pocket-chat-search-nav';
+    previousResult.setAttribute('aria-label', '上一筆搜尋結果');
+    previousResult.innerHTML = lucideIcon('chevronUp');
+    const nextResult = document.createElement('button');
+    nextResult.type = 'button';
+    nextResult.className = 'st-pocket-chat-search-nav';
+    nextResult.setAttribute('aria-label', '下一筆搜尋結果');
+    nextResult.innerHTML = lucideIcon('chevronDown');
+    const clearSearch = document.createElement('button');
+    clearSearch.type = 'button';
+    clearSearch.className = 'st-pocket-chat-search-clear';
+    clearSearch.setAttribute('aria-label', '清除搜尋');
+    clearSearch.innerHTML = lucideIcon('x');
+    search.append(searchInput, searchStatus, previousResult, nextResult, clearSearch);
 
     const contextStats = createContextUsageStats();
 
@@ -1082,25 +1124,126 @@ function createNativeDrawerLauncher() {
         title.textContent = sourceName?.textContent?.trim() || 'SillyTavern';
     };
 
-    const applyChatSearch = () => {
-        const query = searchInput.value.trim().toLocaleLowerCase();
-        document.querySelectorAll('#chat .mes').forEach((message) => {
-            const text = message.querySelector('.mes_text')?.textContent?.toLocaleLowerCase() ?? '';
-            message.classList.toggle('st-pocket-search-hidden', Boolean(query) && !text.includes(query));
+    const searchState = {
+        results: [],
+        activeIndex: -1,
+        restoreMessageId: null,
+        restoreOffset: 0,
+        navigationToken: 0,
+    };
+    const getSearchText = (message) => String(message?.extra?.display_text ?? message?.mes ?? '');
+    const rememberChatPosition = () => {
+        const chatElement = document.getElementById('chat');
+        const chatTop = chatElement?.getBoundingClientRect().top ?? 0;
+        const anchor = [...document.querySelectorAll('#chat .mes')].find((message) => {
+            const rect = message.getBoundingClientRect();
+            return rect.bottom > chatTop;
+        });
+        searchState.restoreMessageId = anchor?.getAttribute('mesid') ?? null;
+        searchState.restoreOffset = anchor ? anchor.getBoundingClientRect().top - chatTop : 0;
+    };
+    const clearActiveResult = () => {
+        document.querySelectorAll('#chat .mes.st-pocket-search-current').forEach((message) => {
+            message.classList.remove('st-pocket-search-current', 'st-pocket-search-reveal');
         });
     };
-    searchInput.addEventListener('input', applyChatSearch);
-    searchInput.addEventListener('search', applyChatSearch);
+    const ensureMessageLoaded = async (messageId) => {
+        let target = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
+        if (target) return target;
+        const firstDisplayedId = Number(document.querySelector('#chat .mes')?.getAttribute('mesid'));
+        if (!Number.isNaN(firstDisplayedId) && messageId < firstDisplayedId) {
+            await showMoreMessages(firstDisplayedId - messageId);
+            target = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
+        }
+        return target;
+    };
+    const updateSearchControls = () => {
+        const count = searchState.results.length;
+        searchStatus.value = count ? `${searchState.activeIndex + 1} / ${count}` : (searchInput.value.trim() ? '無結果' : '');
+        searchStatus.textContent = searchStatus.value;
+        previousResult.disabled = count === 0;
+        nextResult.disabled = count === 0;
+        clearSearch.hidden = !searchInput.value;
+        search.classList.toggle('has-results', count > 0);
+    };
+    const navigateToResult = async (index) => {
+        if (!searchState.results.length) return;
+        const token = ++searchState.navigationToken;
+        searchState.activeIndex = (index + searchState.results.length) % searchState.results.length;
+        updateSearchControls();
+        clearActiveResult();
+        const result = searchState.results[searchState.activeIndex];
+        const target = await ensureMessageLoaded(result.messageId);
+        if (!target || token !== searchState.navigationToken) return;
+        target.classList.add('st-pocket-search-current');
+        if (result.hidden) target.classList.add('st-pocket-search-reveal');
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
+    const runChatSearch = () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        clearActiveResult();
+        searchState.navigationToken += 1;
+        searchState.results = query
+            ? chat.flatMap((message, messageId) => getSearchText(message).toLocaleLowerCase().includes(query)
+                ? [{ messageId, hidden: Boolean(message?.is_system) }]
+                : [])
+            : [];
+        searchState.activeIndex = searchState.results.length ? 0 : -1;
+        updateSearchControls();
+        if (searchState.results.length) navigateToResult(0);
+    };
+    const resetChatSearch = async ({ restore = true } = {}) => {
+        searchInput.value = '';
+        clearActiveResult();
+        searchState.navigationToken += 1;
+        searchState.results = [];
+        searchState.activeIndex = -1;
+        updateSearchControls();
+        if (!restore || searchState.restoreMessageId === null) return;
+        const anchor = await ensureMessageLoaded(Number(searchState.restoreMessageId));
+        if (!anchor) return;
+        const chatElement = document.getElementById('chat');
+        const currentOffset = anchor.getBoundingClientRect().top - chatElement.getBoundingClientRect().top;
+        chatElement.scrollTop += currentOffset - searchState.restoreOffset;
+    };
+    searchInput.addEventListener('focus', () => {
+        if (!searchInput.value) rememberChatPosition();
+    });
+    searchInput.addEventListener('input', runChatSearch);
+    searchInput.addEventListener('search', () => {
+        if (searchInput.value) runChatSearch();
+        else resetChatSearch();
+    });
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            navigateToResult(searchState.activeIndex + (event.shiftKey ? -1 : 1));
+        } else if (event.key === 'Escape' && searchInput.value) {
+            event.stopPropagation();
+            resetChatSearch();
+        }
+    });
+    previousResult.addEventListener('click', () => navigateToResult(searchState.activeIndex - 1));
+    nextResult.addEventListener('click', () => navigateToResult(searchState.activeIndex + 1));
+    clearSearch.addEventListener('click', () => {
+        resetChatSearch();
+        searchInput.focus();
+    });
 
     mobileHeader.append(identity, search, contextStats, launcher);
     document.body.append(scrim, mobileHeader, chatActions, menu);
     syncChatIdentity();
     const chatObserver = new MutationObserver(() => {
         syncChatIdentity();
-        applyChatSearch();
     });
     const chat = document.getElementById('chat');
     if (chat) chatObserver.observe(chat, { childList: true, subtree: true });
+    eventSource.on(event_types.CHAT_CHANGED, () => resetChatSearch({ restore: false }));
+    for (const eventType of [event_types.MESSAGE_RECEIVED, event_types.MESSAGE_EDITED, event_types.MESSAGE_DELETED]) {
+        eventSource.on(eventType, () => {
+            if (searchInput.value) runChatSearch();
+        });
+    }
     syncNativeActions();
 
     document.addEventListener('click', (event) => {
