@@ -2011,7 +2011,10 @@ html[data-st-pocket-layout='desktop'] .st-pocket-context-panel {
 }
 
 html[data-st-pocket-layout='desktop'] .st-pocket-chat-actions {
-    right: min(24rem, calc(100vw - 21rem));
+    top: var(--st-pocket-chat-actions-top, 7rem);
+    right: auto;
+    left: var(--st-pocket-chat-actions-left, 1rem);
+    max-height: var(--st-pocket-chat-actions-max-height, calc(100vh - 8rem));
     overflow: hidden auto;
 }
 
@@ -2511,8 +2514,8 @@ html.st-pocket-ui-enabled :is(#gallery, .draggable) :is(input, textarea, select,
 /* Top-bar controls are icon actions, not bordered form buttons. Keep this
    broader than the native drawer holder so extension-provided top actions do
    not inherit the global cream/sage button frame. */
-html.st-pocket-ui-enabled #top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable),
-html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable) {
+html.st-pocket-ui-enabled #top-bar#top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable),
+html.st-pocket-ui-enabled #top-settings-holder#top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable) {
     border: 0 !important;
     outline: 0;
     background-color: transparent !important;
@@ -2521,37 +2524,14 @@ html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer
     filter: none !important;
 }
 
-html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder :is(.drawer, .drawer-header, .drawer-toggle, .drawer-icon) {
+html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder#top-settings-holder :is(.drawer, .drawer-header, .drawer-toggle, .drawer-icon) {
     border: 0 !important;
     border-color: transparent !important;
     outline: 0 !important;
     box-shadow: none !important;
 }
 
-/* These four native launchers use different holder structures in SillyTavern.
-   Target their real IDs so none retain the themed sage frame. */
-html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] :is(
-    #ai-config-button,
-    #WI-SP-button,
-    #backgrounds-button,
-    #rightNavHolder
-) :is(.drawer-toggle, .drawer-header, .drawer-icon),
-html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] :is(
-    #ai-config-button,
-    #WI-SP-button,
-    #backgrounds-button
-) {
-    border: 0 !important;
-    border-color: transparent !important;
-    outline: 0 !important;
-    background-color: transparent !important;
-    background-image: none !important;
-    box-shadow: none !important;
-    filter: none !important;
-}
-
-
-html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder :is(
+html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder#top-settings-holder :is(
     .drawer,
     .drawer-header,
     .drawer-toggle,
@@ -2570,13 +2550,13 @@ html.st-pocket-ui-enabled[data-st-pocket-layout='desktop'] #top-settings-holder 
     box-shadow: none !important;
 }
 
-html.st-pocket-ui-enabled #top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):hover,
-html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):hover {
+html.st-pocket-ui-enabled #top-bar#top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):hover,
+html.st-pocket-ui-enabled #top-settings-holder#top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):hover {
     background-color: var(--st-pocket-apple-soft) !important;
 }
 
-html.st-pocket-ui-enabled #top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible,
-html.st-pocket-ui-enabled #top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible {
+html.st-pocket-ui-enabled #top-bar#top-bar :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible,
+html.st-pocket-ui-enabled #top-settings-holder#top-settings-holder :is(button, .menu_button, .drawer-header, .drawer-toggle, [role='button'], .interactable):focus-visible {
     outline: 2px solid var(--st-pocket-apple) !important;
     outline-offset: 2px;
 }

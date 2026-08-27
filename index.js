@@ -1136,7 +1136,34 @@ function createNativeDrawerLauncher() {
     title.textContent = 'SillyTavern';
     identity.append(avatar, title);
 
-    const chatActions = createChatActions(identity);
+    let chatActions;
+    const positionChatActionsByBar = () => {
+        if (document.documentElement.dataset.stPocketLayout !== 'desktop' || chatActions.hidden) return;
+        const barRect = mobileHeader.getBoundingClientRect();
+        const viewportWidth = document.documentElement.clientWidth || globalThis.innerWidth;
+        const viewportHeight = document.documentElement.clientHeight || globalThis.innerHeight;
+        const panelWidth = chatActions.getBoundingClientRect().width;
+        const edge = 8;
+        const gap = 8;
+        const minimumUsefulHeight = 200;
+        const spaceBelow = Math.max(0, viewportHeight - barRect.bottom - gap - edge);
+        const spaceAbove = Math.max(0, barRect.top - gap - edge);
+        const panelHeight = chatActions.scrollHeight;
+        const openBelow = spaceBelow >= Math.min(minimumUsefulHeight, panelHeight) || spaceBelow >= spaceAbove;
+        const availableHeight = openBelow ? spaceBelow : spaceAbove;
+        const renderedHeight = Math.min(panelHeight, availableHeight);
+        const top = openBelow
+            ? barRect.bottom + gap
+            : Math.max(edge, barRect.top - gap - renderedHeight);
+        const left = Math.min(
+            Math.max(edge, barRect.left),
+            Math.max(edge, viewportWidth - panelWidth - edge),
+        );
+        chatActions.style.setProperty('--st-pocket-chat-actions-top', `${top}px`);
+        chatActions.style.setProperty('--st-pocket-chat-actions-left', `${left}px`);
+        chatActions.style.setProperty('--st-pocket-chat-actions-max-height', `${availableHeight}px`);
+    };
+    chatActions = createChatActions(identity, { onOpen: positionChatActionsByBar });
     const latestButton = createReturnToLatestButton();
 
     const search = document.createElement('div');
@@ -1316,6 +1343,7 @@ function createNativeDrawerLauncher() {
         mobileHeader.style.setProperty('--st-pocket-chat-bar-left', `${next.left}px`);
         mobileHeader.style.setProperty('--st-pocket-chat-bar-top', `${next.top}px`);
         mobileHeader.classList.add('is-user-positioned');
+        positionChatActionsByBar();
         if (persist) {
             try {
                 localStorage.setItem(DESKTOP_CHAT_BAR_POSITION_STORAGE_KEY, JSON.stringify(next));
@@ -1392,9 +1420,12 @@ function createNativeDrawerLauncher() {
         event.preventDefault();
     });
     globalThis.addEventListener('resize', () => {
-        if (!mobileHeader.classList.contains('is-user-positioned')) return;
-        const rect = mobileHeader.getBoundingClientRect();
-        applyChatBarPosition({ left: rect.left, top: rect.top }, true);
+        if (mobileHeader.classList.contains('is-user-positioned')) {
+            const rect = mobileHeader.getBoundingClientRect();
+            applyChatBarPosition({ left: rect.left, top: rect.top }, true);
+        } else {
+            positionChatActionsByBar();
+        }
     });
     syncChatIdentity();
     const chatObserver = new MutationObserver(() => {
@@ -1418,7 +1449,7 @@ function createNativeDrawerLauncher() {
     });
 }
 
-function createChatActions(toggle) {
+function createChatActions(toggle, { onOpen } = {}) {
     const panel = document.createElement('section');
     panel.className = 'st-pocket-chat-actions';
     panel.hidden = true;
@@ -1461,14 +1492,16 @@ function createChatActions(toggle) {
         floorStatus.textContent = `目前 ${current === undefined ? '--' : `#${current}`} / 最後 ${chat.length ? `#${chat.length - 1}` : '--'}`;
         floorInput.max = String(Math.max(0, chat.length - 1));
     };
+    const open = () => {
+        updateFloorStatus();
+        floorFeedback.textContent = '';
+        panel.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        onOpen?.();
+    };
     toggle.addEventListener('click', () => {
-        const opening = panel.hidden;
-        if (opening) {
-            updateFloorStatus();
-            floorFeedback.textContent = '';
-        }
-        panel.hidden = !opening;
-        toggle.setAttribute('aria-expanded', String(opening));
+        if (panel.hidden) open();
+        else close();
     });
     floorForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -1493,11 +1526,8 @@ function createChatActions(toggle) {
     const openFromMessageId = (display) => {
         const messageId = display.closest('.mes[mesid]')?.getAttribute('mesid');
         if (messageId === undefined) return;
-        panel.hidden = false;
-        toggle.setAttribute('aria-expanded', 'true');
-        updateFloorStatus();
+        open();
         floorInput.value = messageId;
-        floorFeedback.textContent = '';
         floorInput.focus();
         floorInput.select();
     };
