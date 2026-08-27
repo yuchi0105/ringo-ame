@@ -36,14 +36,12 @@
 - `manifest.json`：SillyTavern Extension 描述檔。
 - `index.js`：模式切換與偏好保存。
 - `style.css`：聊天主畫面的響應式與 iPhone 安全區域樣式。
-- `preview.html`：不需安裝 SillyTavern 即可開啟的獨立預覽頁。
-- `preview.css`、`preview.js`：僅供預覽使用的裝置畫框、模擬介面與操作。
+- `assets/`：實裝介面使用的圖片素材。
+- `design-concepts/`：設計參考稿與素材，不參與擴充載入。
 
-## 開啟預覽
+## 開啟方式
 
-直接使用瀏覽器開啟 `preview.html`。預覽頁可切換 iPhone／電腦畫框，以及自動／手機／電腦顯示模式；手機畫框中的左右按鈕可測試抽屜式側欄。
-
-預覽頁只用於確認外觀與基本操作感，不代表已完成 SillyTavern 的 DOM、主題及其他擴充相容性驗證。
+安裝至 SillyTavern 後直接於 SillyTavern 內使用。早期的獨立預覽頁（`preview.html` 及其專屬樣式與腳本）已於實裝完成後移除，如需回顧可由 Git 歷史取回。
 
 ## 下一步待確認
 

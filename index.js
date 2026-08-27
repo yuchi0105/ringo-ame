@@ -1431,8 +1431,8 @@ function createNativeDrawerLauncher() {
     const chatObserver = new MutationObserver(() => {
         syncChatIdentity();
     });
-    const chat = document.getElementById('chat');
-    if (chat) chatObserver.observe(chat, { childList: true, subtree: true });
+    const chatElement = document.getElementById('chat');
+    if (chatElement) chatObserver.observe(chatElement, { childList: true, subtree: true });
     eventSource.on(event_types.CHAT_CHANGED, () => resetChatSearch({ restore: false }));
     for (const eventType of [event_types.MESSAGE_RECEIVED, event_types.MESSAGE_EDITED, event_types.MESSAGE_DELETED]) {
         eventSource.on(eventType, () => {
@@ -1523,37 +1523,6 @@ function createChatActions(toggle, { onOpen } = {}) {
         globalThis.setTimeout(() => target.classList.remove('st-pocket-floor-current', 'st-pocket-floor-reveal'), 2200);
         close();
     });
-    const openFromMessageId = (display) => {
-        const messageId = display.closest('.mes[mesid]')?.getAttribute('mesid');
-        if (messageId === undefined) return;
-        open();
-        floorInput.value = messageId;
-        floorInput.focus();
-        floorInput.select();
-    };
-    const prepareMessageIdShortcuts = () => {
-        document.querySelectorAll('#chat .mesIDDisplay').forEach((display) => {
-            display.setAttribute('role', 'button');
-            display.setAttribute('tabindex', '0');
-            display.setAttribute('title', '樓層快速跳轉');
-            display.setAttribute('aria-label', `從${display.textContent.trim() || '此樓層'}開啟樓層快速跳轉`);
-        });
-    };
-    document.getElementById('chat')?.addEventListener('click', (event) => {
-        const display = event.target.closest?.('.mesIDDisplay');
-        if (display) openFromMessageId(display);
-    });
-    document.getElementById('chat')?.addEventListener('keydown', (event) => {
-        const display = event.target.closest?.('.mesIDDisplay');
-        if (display && (event.key === 'Enter' || event.key === ' ')) {
-            event.preventDefault();
-            openFromMessageId(display);
-        }
-    });
-    const messageIdObserver = new MutationObserver(prepareMessageIdShortcuts);
-    const chatElement = document.getElementById('chat');
-    if (chatElement) messageIdObserver.observe(chatElement, { childList: true, subtree: true });
-    prepareMessageIdShortcuts();
     panel.querySelector('.st-pocket-chat-actions-heading button').addEventListener('click', close);
     panel.querySelectorAll('[data-native]').forEach((button) => button.addEventListener('click', () => {
         const nativeAction = document.querySelector(button.dataset.native);
