@@ -627,7 +627,7 @@ function createExtensionSettings() {
     section.innerHTML = `
         <div class="inline-drawer">
             <div class="inline-drawer-toggle inline-drawer-header">
-                <b>ST Pocket UI</b>
+                <b>蘋果糖 ringo-ame</b>
                 <i class="inline-drawer-icon fa-solid fa-circle-chevron-down down" aria-hidden="true"></i>
             </div>
             <div class="inline-drawer-content">
@@ -636,7 +636,7 @@ function createExtensionSettings() {
                         <input id="st-pocket-ui-enabled-setting" type="checkbox">
                         <span>啟用本擴充</span>
                     </label>
-                    <small>關閉後會停用 ST Pocket UI 的主題與響應式版面，設定入口仍會保留。</small>
+                    <small>關閉後會停用蘋果糖 ringo-ame 的主題與響應式版面，設定入口仍會保留。</small>
                 </div>
                 <div class="st-pocket-setting-group">
                     <label for="st-pocket-ui-theme-setting">主題</label>
@@ -816,12 +816,12 @@ function createWandMenuEntry() {
     const entry = document.createElement('button');
     entry.type = 'button';
     entry.className = 'list-group-item flex-container flexGap5 st-pocket-wand-action interactable';
-    entry.setAttribute('aria-label', '開啟 ST Pocket UI 設定');
+    entry.setAttribute('aria-label', '開啟蘋果糖 ringo-ame 設定');
     entry.innerHTML = `<svg class="st-pocket-apple-icon extensionsMenuExtensionButton" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
         <path d="M24 17c-4.2-4.2-13-3.2-15.5 4.3-2.4 7.2 2.4 18.8 9 19.7 2.5.3 4.2-1.5 6.5-1.5s4 1.8 6.5 1.5c6.6-.9 11.4-12.5 9-19.7C37 13.8 28.2 12.8 24 17Z"/>
         <path d="M24 16c-.2-5.5 2.8-9.1 7.8-9.6-.2 4.9-3 8.2-7.8 9.6Z"/>
         <path d="M24 16c-.4-3-1.8-5.3-4.3-7"/>
-    </svg><span>ST Pocket UI</span>`;
+    </svg><span>蘋果糖 ringo-ame</span>`;
     entry.addEventListener('click', openPocketSettings);
     container.append(entry);
     menu.append(container);
@@ -859,11 +859,11 @@ function createModeSwitcher() {
     const panel = document.createElement('div');
     panel.className = 'st-pocket-mode-menu';
     panel.setAttribute('role', 'group');
-    panel.setAttribute('aria-label', 'ST Pocket UI 顯示模式');
+    panel.setAttribute('aria-label', '蘋果糖 ringo-ame 顯示模式');
     panel.hidden = true;
     panel.innerHTML = `
         <div class="st-pocket-mode-menu-heading">
-            <span class="st-pocket-mode-menu-kicker">ST Pocket UI</span>
+            <span class="st-pocket-mode-menu-kicker">蘋果糖 ringo-ame</span>
             <strong>版面模式</strong>
         </div>
         <div class="st-pocket-mode-options"></div>`;
@@ -1082,7 +1082,7 @@ function createNativeDrawerLauncher() {
 
     const modeSection = document.createElement('section');
     modeSection.className = 'st-pocket-drawer-mode-section';
-    modeSection.setAttribute('aria-label', 'ST Pocket UI 版面模式');
+    modeSection.setAttribute('aria-label', '蘋果糖 ringo-ame 版面模式');
 
     const modeLabel = document.createElement('span');
     modeLabel.className = 'st-pocket-drawer-mode-label';

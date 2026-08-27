@@ -557,10 +557,7 @@ html.st-pocket-ui-enabled.st-pocket-default-background #bg2 {
     appearance: none;
     display: flex;
     width: 100%;
-    min-height: 2.75rem;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.35rem 0.5rem;
     border: 0;
     color: var(--st-pocket-text);
     border-radius: 0.4rem;
