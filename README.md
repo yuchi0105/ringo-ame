@@ -6,6 +6,9 @@
 
 - Project ID：`st-pocket-ui`
 - Canonical Path：`D:\AI-Projects\st-pocket-ui`
+- 發布名稱：`ringo-ame`
+- SillyTavern 擴充清單顯示名稱：`蘋果糖 ringo-ame`
+- `st-pocket-ui` 為內部開發代號，僅用於本機資料夾與程式內部識別（設定鍵、CSS class、事件名稱）
 - 專案狀態：ACTIVE
 
 ## 已確認方向
