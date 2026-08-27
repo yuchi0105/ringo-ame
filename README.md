@@ -35,3 +35,12 @@
 ## 授權
 
 本專案採用 [MIT License](LICENSE)。
+
+## 第三方資源
+
+本專案使用以下開源字型與圖示；各資源仍依其原授權條款提供，不包含在本專案的 MIT 授權內：
+
+- [源泉圓體 GenSenRounded](https://github.com/ButTaiwan/gensen-font)，由 But Ko（柯志杰）製作，採用 [SIL Open Font License 1.1](https://github.com/ButTaiwan/gensen-font/blob/master/SIL_Open_Font_License_1.1.txt)。
+- [jf open 粉圓](https://github.com/justfont/open-huninn-font)，由 justfont 製作，採用 [SIL Open Font License 1.1](https://github.com/justfont/open-huninn-font/blob/master/LICENSE)。
+- [芫荽 Iansui](https://github.com/ButTaiwan/iansui)，由 But Ko（柯志杰）製作，採用 [SIL Open Font License 1.1](https://github.com/ButTaiwan/iansui/blob/main/OFL.txt)。
+- [Lucide Icons](https://lucide.dev/)，由 Lucide Contributors 維護，採用 [ISC License](https://github.com/lucide-icons/lucide/blob/main/LICENSE)；其中部分圖示衍生自 Feather Icons，依 Lucide 授權檔所列的 MIT License 提供。
