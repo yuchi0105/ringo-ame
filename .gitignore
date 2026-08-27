@@ -17,11 +17,15 @@ coverage/
 # Editor and operating-system files
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Private design references and development-only drafts
+design-concepts/
 
 # Local temporary and backup files
 *.tmp
