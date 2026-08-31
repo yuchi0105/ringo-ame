@@ -2538,7 +2538,7 @@ html.st-pocket-ui-enabled :is(
     [role='dialog'],
     #bulk_tag_popup,
     #dialogue_popup,
-    .draggable,
+    .draggable:not(.zoomed_avatar),
     .ui-dialog
 ):not(#chat .mes_text *) {
     color: var(--st-pocket-text-strong) !important;
@@ -2572,7 +2572,7 @@ html.st-pocket-ui-enabled .draggable:not(#chat .mes_text *) .dragTitle {
     background-color: var(--st-pocket-secondary-soft) !important;
 }
 
-html.st-pocket-ui-enabled :is(dialog, [role='dialog'], .popup, .draggable, .ui-dialog)
+html.st-pocket-ui-enabled :is(dialog, [role='dialog'], .popup, .draggable:not(.zoomed_avatar), .ui-dialog)
     :is(header, .popup-header, .popup-title, .modal-header, .modal-title, .ui-dialog-titlebar, .panelControlBar, .title-bar, .title_bar):not(#chat .mes_text *) {
     color: var(--st-pocket-text-strong) !important;
     border-color: var(--st-pocket-border) !important;
@@ -2683,8 +2683,18 @@ html.st-pocket-ui-enabled .st-pocket-mode-menu .st-pocket-ui-mode[aria-pressed='
     background-color: var(--st-pocket-accent-soft) !important;
 }
 
-/* Keep the zoomed-avatar close action unframed after keyboard/pointer focus. */
+/* Keep the zoomed-avatar overlay controls unframed. This must stay after the
+   generic draggable-window header theme above so it cannot repaint the
+   control bar as a sage title strip. */
 html.st-pocket-ui-enabled .zoomed_avatar.zoomed_avatar {
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+html.st-pocket-ui-enabled .zoomed_avatar.zoomed_avatar .panelControlBar:has(#closeZoom) {
     border: 0 !important;
     outline: 0 !important;
     background: transparent !important;
