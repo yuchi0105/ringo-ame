@@ -1216,6 +1216,8 @@ html[data-st-pocket-layout='mobile'] #top-settings-holder > .drawer > .drawer-co
     bottom: calc(var(--st-pocket-safe-bottom) + 3.5rem) !important;
     max-height: calc(var(--st-pocket-visual-height, 100dvh) - var(--st-pocket-mobile-header-bottom, 3.5rem) - var(--st-pocket-safe-bottom) - 3.5rem) !important;
     margin-top: 0 !important;
+    padding-top: 0.75rem !important;
+    scroll-padding-top: 0.75rem;
     box-sizing: border-box;
     overflow-y: auto;
     z-index: 9998;
@@ -2477,6 +2479,14 @@ html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .
     color: var(--st-pocket-accent-strong) !important;
     border-color: rgb(var(--st-pocket-accent-rgb) / 58%) !important;
     background-color: var(--st-pocket-accent-soft) !important;
+}
+
+/* The zoomed-avatar close icon is an overlay action, not a framed button. */
+html.st-pocket-ui-enabled .zoomed_avatar #closeZoom {
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 /* Known extension adapter: TopInfoBar already consumes SillyTavern tokens, but
