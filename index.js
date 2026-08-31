@@ -721,6 +721,10 @@ function createExtensionSettings() {
                     </div>
                     <small>寬度在手機窄螢幕會自動維持滿版，避免浪費空間。</small>
                 </div>
+                <div class="st-pocket-setting-group st-pocket-update-setting">
+                    <button id="st-pocket-ui-update-check" type="button" class="menu_button">檢查更新</button>
+                    <small id="st-pocket-ui-update-status" role="status" aria-live="polite">檢查 Git 安裝版本是否有可用更新。</small>
+                </div>
             </div>
         </div>`;
 
@@ -779,6 +783,7 @@ function createExtensionSettings() {
     const messageLineHeightSetting = section.querySelector('#st-pocket-ui-message-line-height-setting');
     messageLineHeightSetting.value = getSavedMessageLineHeight();
     messageLineHeightSetting.addEventListener('input', () => applyMessageLineHeight(messageLineHeightSetting.value));
+    setupUpdateCheck(section);
     settingsRoot.append(section);
     if (savedMessageFontSize) applyMessageFontSize(savedMessageFontSize);
     else resetMessageFontSize();
@@ -788,6 +793,84 @@ function createExtensionSettings() {
     applyTheme(themeSetting.value, { persist: false });
     applyFontFamily(fontFamilySetting.value, { persist: false });
     applyDefaultBackgroundEnabled(defaultBackgroundSetting.checked, { persist: false });
+}
+
+function getInstalledExtensionName() {
+    try {
+        const path = decodeURIComponent(new URL(import.meta.url).pathname);
+        const match = path.match(/\/scripts\/extensions\/(?:third-party\/)?([^/]+)\/[^/]+$/i);
+        return match?.[1] ?? '';
+    } catch {
+        return '';
+    }
+}
+
+function getExtensionRequestHeaders() {
+    try {
+        return globalThis.SillyTavern?.getContext?.()?.getRequestHeaders?.()
+            ?? { 'Content-Type': 'application/json' };
+    } catch {
+        return { 'Content-Type': 'application/json' };
+    }
+}
+
+function setupUpdateCheck(section) {
+    const button = section.querySelector('#st-pocket-ui-update-check');
+    const status = section.querySelector('#st-pocket-ui-update-status');
+    if (!button || !status) return;
+
+    const setState = (message, busy = false) => {
+        status.textContent = message;
+        button.disabled = busy;
+        button.setAttribute('aria-busy', String(busy));
+    };
+    const request = async (endpoint, extensionName) => {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: getExtensionRequestHeaders(),
+            body: JSON.stringify({ extensionName, global: false }),
+        });
+        if (!response.ok) throw new Error((await response.text()) || response.statusText);
+        return response.json();
+    };
+
+    button.addEventListener('click', async () => {
+        const extensionName = getInstalledExtensionName();
+        if (!extensionName) {
+            setState('無法辨識擴充安裝位置，因此無法安全檢查更新。');
+            return;
+        }
+
+        try {
+            setState('正在檢查更新…', true);
+            const version = await request('/api/extensions/version', extensionName);
+            if (version.isUpToDate) {
+                setState('目前已是最新版。');
+                return;
+            }
+
+            setState('有新版可用，等待確認更新。');
+            if (!globalThis.confirm('蘋果糖 ringo-ame 有新版可用，要立即更新嗎？')) return;
+
+            setState('正在更新，請勿關閉頁面…', true);
+            const result = await request('/api/extensions/update', extensionName);
+            if (result.isUpToDate) {
+                setState('版本已是最新，沒有需要套用的變更。');
+                return;
+            }
+            setState('更新完成，請重新整理頁面以套用新版。');
+        } catch (error) {
+            console.error('[ST Pocket UI] Extension update check failed.', error);
+            const detail = String(error?.message ?? error);
+            const manualInstall = /git|repository|not found|ENOENT/i.test(detail);
+            setState(manualInstall
+                ? '目前不是可自動更新的 Git 安裝，請重新使用擴充安裝器安裝。'
+                : `檢查更新失敗：${detail}`);
+        } finally {
+            button.disabled = false;
+            button.setAttribute('aria-busy', 'false');
+        }
+    });
 }
 
 function openPocketSettings() {
@@ -1967,6 +2050,47 @@ function enableMobileKeyboardAvoidance() {
     update();
 }
 
+function enableMobileNativePanelClearance() {
+    const root = document.documentElement;
+    const header = document.querySelector('.st-pocket-mobile-header');
+    if (!header || document.getElementById('st-pocket-native-panel-dismiss')) return;
+
+    const dismiss = document.createElement('button');
+    dismiss.id = 'st-pocket-native-panel-dismiss';
+    dismiss.type = 'button';
+    dismiss.className = 'st-pocket-native-panel-dismiss';
+    dismiss.setAttribute('aria-label', '關閉目前欄位並返回聊天');
+    dismiss.hidden = true;
+    document.body.append(dismiss);
+
+    const visibleNativeDrawers = () => [...document.querySelectorAll('#top-settings-holder > .drawer > .drawer-content')]
+        .filter((panel) => panel.getClientRects().length && getComputedStyle(panel).visibility !== 'hidden');
+    const sync = () => {
+        const mobile = root.dataset.stPocketLayout === 'mobile';
+        dismiss.hidden = !mobile || visibleNativeDrawers().length === 0;
+        if (mobile) root.style.setProperty('--st-pocket-mobile-header-bottom', `${Math.ceil(header.getBoundingClientRect().bottom)}px`);
+    };
+
+    dismiss.addEventListener('click', () => {
+        for (const panel of visibleNativeDrawers()) {
+            panel.closest('.drawer')?.querySelector(':scope > .drawer-toggle')?.click();
+        }
+        sync();
+    });
+
+    new ResizeObserver(sync).observe(header);
+    new MutationObserver(sync).observe(document.getElementById('top-settings-holder') ?? document.body, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        attributeFilter: ['class', 'style', 'hidden'],
+    });
+    globalThis.visualViewport?.addEventListener('resize', sync);
+    globalThis.visualViewport?.addEventListener('scroll', sync);
+    globalThis.addEventListener('resize', sync);
+    sync();
+}
+
 function createGenerationAnimation() {
     const sendForm = document.getElementById('send_form');
     if (!sendForm || document.getElementById('st-pocket-generation-animation')) return false;
@@ -2007,6 +2131,7 @@ function initialize() {
     enableIPhoneSafeArea();
     enableBrowserChromeFallbacks();
     enableMobileKeyboardAvoidance();
+    enableMobileNativePanelClearance();
     if (!createGenerationAnimation()) {
         const composerObserver = new MutationObserver(() => {
             if (createGenerationAnimation()) composerObserver.disconnect();

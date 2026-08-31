@@ -1185,6 +1185,35 @@ html[data-st-pocket-layout='mobile'] #top-settings-holder > .drawer > .drawer-to
     display: none;
 }
 
+/* Native drawers begin below Pocket UI's fixed header and leave a generous
+   outside tap target at the bottom for returning to chat. */
+html[data-st-pocket-layout='mobile'] #top-settings-holder > .drawer > .drawer-content {
+    top: var(--st-pocket-mobile-header-bottom, calc(var(--st-pocket-safe-top) + 3.5rem)) !important;
+    bottom: calc(var(--st-pocket-safe-bottom) + 3.5rem) !important;
+    max-height: calc(var(--st-pocket-visual-height, 100dvh) - var(--st-pocket-mobile-header-bottom, 3.5rem) - var(--st-pocket-safe-bottom) - 3.5rem) !important;
+    overflow-y: auto;
+    z-index: 9998;
+}
+
+.st-pocket-native-panel-dismiss {
+    display: none;
+}
+
+html[data-st-pocket-layout='mobile'] .st-pocket-native-panel-dismiss:not([hidden]) {
+    position: fixed;
+    z-index: 9997;
+    right: var(--st-pocket-safe-right);
+    bottom: var(--st-pocket-safe-bottom);
+    left: var(--st-pocket-safe-left);
+    display: block;
+    height: 3.5rem;
+    min-height: 3.5rem;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
 html[data-st-pocket-layout='mobile'] #rightNavHolder .drawer-header {
     display: none;
 }
