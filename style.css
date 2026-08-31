@@ -2481,11 +2481,13 @@ html.st-pocket-ui-enabled :is(.menu_button, button, [role='button']):not(#chat .
     background-color: var(--st-pocket-accent-soft) !important;
 }
 
-/* The zoomed-avatar close icon is an overlay action, not a framed button. */
+/* The zoomed-avatar close control is an overlay action, not a framed panel/button. */
+html.st-pocket-ui-enabled .zoomed_avatar .panelControlBar:has(#closeZoom),
 html.st-pocket-ui-enabled .zoomed_avatar #closeZoom {
     border: 0 !important;
     outline: 0 !important;
     background: transparent !important;
+    background-image: none !important;
     box-shadow: none !important;
 }
 
