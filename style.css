@@ -2684,6 +2684,14 @@ html.st-pocket-ui-enabled .st-pocket-mode-menu .st-pocket-ui-mode[aria-pressed='
 }
 
 /* Keep the zoomed-avatar close action unframed after keyboard/pointer focus. */
+html.st-pocket-ui-enabled .zoomed_avatar.zoomed_avatar {
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
 html.st-pocket-ui-enabled .zoomed_avatar #closeZoom#closeZoom:is(:focus, :focus-visible, :active) {
     border: 0 !important;
     outline: 0 !important;
