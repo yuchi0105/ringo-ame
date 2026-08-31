@@ -631,12 +631,16 @@ function createExtensionSettings() {
                 <i class="inline-drawer-icon fa-solid fa-circle-chevron-down down" aria-hidden="true"></i>
             </div>
             <div class="inline-drawer-content">
-                <div class="st-pocket-setting-group st-pocket-enabled-setting">
-                    <label class="checkbox_label" for="st-pocket-ui-enabled-setting">
-                        <input id="st-pocket-ui-enabled-setting" type="checkbox">
-                        <span>啟用本擴充</span>
-                    </label>
+                <div class="st-pocket-setting-group st-pocket-enabled-setting st-pocket-extension-status-setting">
+                    <div class="st-pocket-enabled-row">
+                        <label class="checkbox_label" for="st-pocket-ui-enabled-setting">
+                            <input id="st-pocket-ui-enabled-setting" type="checkbox">
+                            <span>啟用本擴充</span>
+                        </label>
+                        <button id="st-pocket-ui-update-check" type="button" class="menu_button">檢查更新</button>
+                    </div>
                     <small>關閉後會停用蘋果糖 ringo-ame 的主題與響應式版面，設定入口仍會保留。</small>
+                    <small id="st-pocket-ui-update-status" role="status" aria-live="polite">檢查 Git 安裝版本是否有可用更新。</small>
                 </div>
                 <div class="st-pocket-setting-group">
                     <label for="st-pocket-ui-theme-setting">主題</label>
@@ -720,10 +724,6 @@ function createExtensionSettings() {
                         <output id="st-pocket-ui-message-line-height-output" for="st-pocket-ui-message-line-height-setting">1.6</output>
                     </div>
                     <small>寬度在手機窄螢幕會自動維持滿版，避免浪費空間。</small>
-                </div>
-                <div class="st-pocket-setting-group st-pocket-update-setting">
-                    <button id="st-pocket-ui-update-check" type="button" class="menu_button">檢查更新</button>
-                    <small id="st-pocket-ui-update-status" role="status" aria-live="polite">檢查 Git 安裝版本是否有可用更新。</small>
                 </div>
             </div>
         </div>`;
