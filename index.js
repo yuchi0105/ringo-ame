@@ -1163,6 +1163,136 @@ function createNativeDrawerLauncher() {
         menu.append(button);
     }
 
+    const extensionSection = document.createElement('section');
+    extensionSection.className = 'st-pocket-drawer-mode-section';
+    extensionSection.setAttribute('aria-label', '擴充功能新增');
+    extensionSection.hidden = true;
+
+    const extensionLabel = document.createElement('span');
+    extensionLabel.className = 'st-pocket-drawer-mode-label';
+    extensionLabel.textContent = '擴充功能新增';
+
+    const extensionActions = document.createElement('div');
+    extensionSection.append(extensionLabel, extensionActions);
+    menu.append(extensionSection);
+
+    const removeCloneIds = (root) => {
+        for (const element of [root, ...root.querySelectorAll('*')]) {
+            element.removeAttribute('id');
+            element.removeAttribute('tabindex');
+            for (const attribute of [...element.attributes]) {
+                if (attribute.name.startsWith('on')) element.removeAttribute(attribute.name);
+            }
+        }
+    };
+
+    const isExplicitlyHidden = (element) => {
+        if (!element) return true;
+        if (element.hidden || element.getAttribute('aria-hidden') === 'true') return true;
+        if (['none', 'hidden'].includes(element.style.display)
+            || ['hidden', 'collapse'].includes(element.style.visibility)) return true;
+        return ['hidden', 'displayNone', 'is-hidden'].some((className) => element.classList.contains(className));
+    };
+
+    const drawerIdLabel = (drawer) => drawer.id
+        ?.replace(/(?:[-_](?:drawer|button|container|holder))+$/i, '')
+        .replace(/[-_]+/g, ' ')
+        .replace(/\b\w/g, (character) => character.toUpperCase())
+        .trim();
+
+    const getExtensionLabel = (drawer, nativeToggle) => nativeToggle.getAttribute('title')?.trim()
+        || nativeToggle.querySelector('[title]')?.getAttribute('title')?.trim()
+        || nativeToggle.getAttribute('aria-label')?.trim()
+        || nativeToggle.querySelector('[aria-label]')?.getAttribute('aria-label')?.trim()
+        || nativeToggle.textContent?.trim()
+        || drawer.getAttribute('title')?.trim()
+        || drawer.getAttribute('aria-label')?.trim()
+        || drawerIdLabel(drawer)
+        || '第三方擴充';
+
+    const syncExtensionActions = () => {
+        const nativeToggles = new Set(NATIVE_DRAWERS
+            .map(([, , , selector]) => document.querySelector(selector))
+            .filter(Boolean));
+        const fragment = document.createDocumentFragment();
+        let extensionCount = 0;
+
+        for (const drawer of document.querySelectorAll('#top-settings-holder > .drawer')) {
+            const nativeToggle = drawer.querySelector(':scope > .drawer-toggle');
+            const drawerContent = drawer.querySelector(':scope > .drawer-content');
+            if (!nativeToggle || !drawerContent || nativeToggles.has(nativeToggle)) continue;
+            if (isExplicitlyHidden(drawer) || isExplicitlyHidden(nativeToggle)) continue;
+
+            const label = getExtensionLabel(drawer, nativeToggle);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'menu_button st-pocket-native-action';
+            button.dataset.stPocketExtensionDrawer = drawer.id || label;
+            button.setAttribute('aria-label', label);
+
+            const sourceIcon = nativeToggle.matches('i, svg, img, .drawer-icon')
+                ? nativeToggle
+                : nativeToggle.querySelector('i, svg, img, .drawer-icon');
+            if (sourceIcon) {
+                const icon = sourceIcon.cloneNode(true);
+                removeCloneIds(icon);
+                icon.setAttribute('aria-hidden', 'true');
+                icon.style.pointerEvents = 'none';
+                button.append(icon);
+            }
+
+            const text = document.createElement('span');
+            text.textContent = label;
+            button.append(text);
+            button.addEventListener('click', () => {
+                if (!nativeToggle.isConnected || isExplicitlyHidden(drawer) || isExplicitlyHidden(nativeToggle)) {
+                    syncExtensionActions();
+                    return;
+                }
+                closeMenu();
+                nativeToggle.click();
+            });
+            fragment.append(button);
+            extensionCount += 1;
+        }
+
+        extensionActions.replaceChildren(fragment);
+        extensionSection.hidden = extensionCount === 0;
+    };
+
+    let extensionSyncFrame = 0;
+    const scheduleExtensionSync = () => {
+        if (extensionSyncFrame) return;
+        extensionSyncFrame = globalThis.requestAnimationFrame?.(() => {
+            extensionSyncFrame = 0;
+            syncExtensionActions();
+        }) || globalThis.setTimeout(() => {
+            extensionSyncFrame = 0;
+            syncExtensionActions();
+        }, 0);
+    };
+    const extensionDrawerObserver = new MutationObserver((mutations) => {
+        const relevant = mutations.some(({ target, type }) => {
+            if (!(target instanceof Element)) return false;
+            if (target.id === 'top-settings-holder') return true;
+            const drawer = target.closest('#top-settings-holder > .drawer');
+            if (!drawer) return false;
+            const nativeToggle = drawer.querySelector(':scope > .drawer-toggle');
+            return target === drawer || target === nativeToggle || nativeToggle?.contains(target) || type === 'childList' && target === drawer;
+        });
+        if (relevant) scheduleExtensionSync();
+    });
+    const topSettingsHolder = document.getElementById('top-settings-holder');
+    if (topSettingsHolder) {
+        extensionDrawerObserver.observe(topSettingsHolder, {
+            attributes: true,
+            attributeFilter: ['aria-hidden', 'aria-label', 'class', 'hidden', 'style', 'title'],
+            childList: true,
+            subtree: true,
+        });
+    }
+    syncExtensionActions();
+
     const modeSection = document.createElement('section');
     modeSection.className = 'st-pocket-drawer-mode-section';
     modeSection.setAttribute('aria-label', '蘋果糖 ringo-ame 版面模式');
