@@ -100,7 +100,8 @@ html.st-pocket-ui-enabled body {
 }
 
 html.st-pocket-ui-enabled body,
-html.st-pocket-ui-enabled :is(button, input, select, textarea):not(#chat .mes_text *) {
+html.st-pocket-ui-enabled :is(input, select, textarea):not(#chat .mes_text *),
+html.st-pocket-ui-enabled button:not(:is(.fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands)):not(#chat .mes_text *) {
     font-family: var(--st-pocket-font-family, var(--mainFontFamily, sans-serif));
 }
 
@@ -1261,7 +1262,7 @@ html[data-st-pocket-layout='mobile'] #send_form {
 
 html[data-st-pocket-layout='mobile'] #chat {
     padding-top: calc(3.75rem + var(--st-pocket-safe-top));
-    padding-inline: clamp(0.5rem, 3vw, 1rem);
+    padding-inline: clamp(0.2rem, 1.5vw, 0.5rem);
     overflow-wrap: anywhere;
 }
 
@@ -1606,6 +1607,38 @@ html.st-pocket-ui-enabled #chat :is(.timestamp, .mesIDDisplay, .tokenCounterDisp
 
 html.st-pocket-ui-enabled #chat :is(a, q) {
     color: var(--st-pocket-link);
+}
+
+/* Dialogue must remain distinguishable from narration even when a native
+   theme's quote colour was designed for a dark background. */
+html.st-pocket-ui-enabled #chat .mes_text q {
+    color: var(--st-pocket-accent-strong);
+    font-weight: 650;
+}
+
+html.st-pocket-ui-enabled #chat .mes_reasoning_details {
+    color: var(--st-pocket-text-muted);
+}
+
+html.st-pocket-ui-enabled #chat .mes_reasoning_header {
+    color: var(--st-pocket-text-strong);
+    border: 1px solid rgb(var(--st-pocket-secondary-rgb) / 32%);
+    background-color: var(--st-pocket-secondary-soft);
+    opacity: 1;
+}
+
+html.st-pocket-ui-enabled #chat .mes_reasoning {
+    color: var(--st-pocket-text-muted);
+    border-left-color: var(--st-pocket-secondary);
+}
+
+html[data-st-pocket-layout='mobile'] #chat .mes {
+    max-width: none;
+}
+
+html[data-st-pocket-layout='mobile'] #chat .mes_block {
+    min-width: 0;
+    padding-left: 0.35rem;
 }
 
 html.st-pocket-ui-enabled #chat :is(code, pre) {
@@ -2457,6 +2490,42 @@ html.st-pocket-ui-enabled :is(input, textarea, select, .text_pole):not(#chat .me
     border-color: rgb(var(--st-pocket-border-rgb) / 30%) !important;
     background-color: var(--st-pocket-field-disabled) !important;
     -webkit-text-fill-color: var(--st-pocket-text-soft) !important;
+    opacity: 1 !important;
+}
+
+/* Prompt Manager intentionally dims disabled rows. Its native light-on-dark
+   colour becomes unreadable on Pocket UI's cream surface, so keep the state
+   visible through the toggle while retaining readable themed text. */
+html.st-pocket-ui-enabled #completion_prompt_manager .completion_prompt_manager_prompt_disabled,
+html.st-pocket-ui-enabled #completion_prompt_manager .completion_prompt_manager_prompt_disabled
+    :is(.completion_prompt_manager_prompt_name, .prompt-manager-inspect-action, span, i) {
+    color: var(--st-pocket-text-muted) !important;
+    -webkit-text-fill-color: var(--st-pocket-text-muted) !important;
+    opacity: 1 !important;
+}
+
+/* Native helper and counter copy often inherits light-on-dark theme colours
+   from a container instead of a dedicated text element. Cover the semantic
+   text states across setting surfaces, including Prompt Manager's bare total. */
+html.st-pocket-ui-enabled #completion_prompt_manager .completion_prompt_manager_header,
+html.st-pocket-ui-enabled :is(
+    #left-nav-panel,
+    #right-nav-panel,
+    #extensionsMenu,
+    .drawer-content,
+    .options-content,
+    .popup
+):not(#chat .mes_text *) :is(
+    .notes,
+    .hint,
+    .text-muted,
+    .text_muted,
+    .range-block-counter,
+    .range-block-title
+) {
+    color: var(--st-pocket-text-muted) !important;
+    -webkit-text-fill-color: var(--st-pocket-text-muted) !important;
+    text-shadow: none !important;
     opacity: 1 !important;
 }
 
