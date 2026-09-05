@@ -101,10 +101,11 @@ function getSavedGenerationAnimationEnabled() {
 function applyGenerationAnimationEnabled(enabled, { persist = true } = {}) {
     const nextEnabled = Boolean(enabled);
     memoryGenerationAnimationEnabled = nextEnabled;
+    const effectiveEnabled = nextEnabled && document.documentElement.classList.contains('st-pocket-ui-enabled');
     const animation = document.getElementById('st-pocket-generation-animation');
     if (animation) {
-        animation.hidden = !nextEnabled;
-        if (!nextEnabled) animation.classList.remove('is-active');
+        animation.hidden = !effectiveEnabled;
+        if (!effectiveEnabled) animation.classList.remove('is-active');
     }
     const setting = document.getElementById('st-pocket-ui-generation-animation-setting');
     if (setting) setting.checked = nextEnabled;
@@ -486,7 +487,7 @@ function getSavedDefaultBackgroundEnabled() {
 function applyDefaultBackgroundEnabled(enabled, { persist = true } = {}) {
     const nextEnabled = Boolean(enabled);
     memoryDefaultBackgroundEnabled = nextEnabled;
-    document.documentElement.classList.toggle('st-pocket-default-background', nextEnabled);
+    document.documentElement.classList.toggle('st-pocket-default-background', nextEnabled && document.documentElement.classList.contains('st-pocket-ui-enabled'));
 
     const setting = document.getElementById('st-pocket-ui-default-background-setting');
     if (setting) setting.checked = nextEnabled;
@@ -573,6 +574,8 @@ function applyExtensionEnabled(enabled, { persist = true } = {}) {
         applyMessageLineHeight(getSavedMessageLineHeight());
         applyFontFamily(getSavedFontFamily(), { persist: false });
         applyDefaultBackgroundEnabled(getSavedDefaultBackgroundEnabled(), { persist: false });
+        applyFloatingButtonEnabled(getSavedFloatingButtonEnabled(), { persist: false });
+        applyGenerationAnimationEnabled(getSavedGenerationAnimationEnabled(), { persist: false });
     } else {
         delete document.documentElement.dataset.stPocketMode;
         delete document.documentElement.dataset.stPocketLayout;
@@ -583,10 +586,16 @@ function applyExtensionEnabled(enabled, { persist = true } = {}) {
         document.documentElement.style.removeProperty('--st-pocket-message-line-height');
         document.documentElement.style.removeProperty('--st-pocket-font-family');
         document.documentElement.classList.remove('st-pocket-default-background');
+        document.getElementById('st-pocket-generation-animation')?.classList.remove('is-active');
+        const animation = document.getElementById('st-pocket-generation-animation');
+        if (animation) animation.hidden = true;
     }
 
     const setting = document.getElementById('st-pocket-ui-enabled-setting');
     if (setting) setting.checked = nextEnabled;
+    document.querySelectorAll('#st-pocket-ui-settings input, #st-pocket-ui-settings select, #st-pocket-ui-settings button').forEach((control) => {
+        if (control !== setting && control.id !== 'st-pocket-ui-update-check') control.disabled = !nextEnabled;
+    });
     if (persist) {
         try {
             globalThis.localStorage?.setItem(EXTENSION_ENABLED_STORAGE_KEY, String(nextEnabled));
@@ -2229,7 +2238,7 @@ function createGenerationAnimation() {
     animation.id = 'st-pocket-generation-animation';
     animation.className = 'st-pocket-generation-animation';
     animation.setAttribute('aria-hidden', 'true');
-    animation.hidden = !getSavedGenerationAnimationEnabled();
+    animation.hidden = !(getSavedExtensionEnabled() && getSavedGenerationAnimationEnabled());
     animation.innerHTML = `
         <span class="st-pocket-generation-track">
             <span class="st-pocket-generation-icon"></span>
@@ -2239,7 +2248,9 @@ function createGenerationAnimation() {
     sendForm.append(animation);
 
     const setGenerating = (generating) => {
-        animation.classList.toggle('is-active', Boolean(generating) && getSavedGenerationAnimationEnabled());
+        animation.classList.toggle('is-active', Boolean(generating)
+            && document.documentElement.classList.contains('st-pocket-ui-enabled')
+            && getSavedGenerationAnimationEnabled());
     };
     eventSource.on(event_types.GENERATION_STARTED, (_type, _params, isDryRun) => {
         if (!isDryRun) setGenerating(true);
@@ -2247,6 +2258,56 @@ function createGenerationAnimation() {
     eventSource.on(event_types.GENERATION_ENDED, () => setGenerating(false));
     eventSource.on(event_types.GENERATION_STOPPED, () => setGenerating(false));
     eventSource.on(event_types.CHAT_CHANGED, () => setGenerating(false));
+    return true;
+}
+
+const DIALOGUE_TEXT_PATTERN = /(「[^」\r\n]+」|“[^”\r\n]+”|"[^"\r\n]+")/g;
+
+function markDialogueText(root = document.getElementById('chat')) {
+    if (!root) return;
+
+    const textNodes = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+            if (!node.nodeValue?.match(DIALOGUE_TEXT_PATTERN)) return NodeFilter.FILTER_REJECT;
+            if (node.parentElement?.closest('q, .st-pocket-dialogue, code, pre, textarea, input, [contenteditable="true"]')) {
+                return NodeFilter.FILTER_REJECT;
+            }
+            return node.parentElement?.closest('.mes_text') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        },
+    });
+
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    for (const node of textNodes) {
+        const fragment = document.createDocumentFragment();
+        let cursor = 0;
+        DIALOGUE_TEXT_PATTERN.lastIndex = 0;
+        for (const match of node.nodeValue.matchAll(DIALOGUE_TEXT_PATTERN)) {
+            fragment.append(node.nodeValue.slice(cursor, match.index));
+            const dialogue = document.createElement('span');
+            dialogue.className = 'st-pocket-dialogue';
+            dialogue.textContent = match[0];
+            fragment.append(dialogue);
+            cursor = match.index + match[0].length;
+        }
+        fragment.append(node.nodeValue.slice(cursor));
+        node.replaceWith(fragment);
+    }
+}
+
+function observeDialogueText() {
+    const chatElement = document.getElementById('chat');
+    if (!chatElement) return false;
+
+    markDialogueText(chatElement);
+    new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType === Node.TEXT_NODE) markDialogueText(node.parentElement);
+                else if (node.nodeType === Node.ELEMENT_NODE) markDialogueText(node);
+            }
+        }
+    }).observe(chatElement, { childList: true, subtree: true });
     return true;
 }
 
@@ -2280,6 +2341,13 @@ function initialize() {
     }
     createExtensionSettings();
     applyExtensionEnabled(getSavedExtensionEnabled(), { persist: false });
+    if (!observeDialogueText()) {
+        const dialogueObserver = new MutationObserver(() => {
+            if (observeDialogueText()) dialogueObserver.disconnect();
+        });
+        dialogueObserver.observe(document.body, { childList: true, subtree: true });
+        globalThis.setTimeout(() => dialogueObserver.disconnect(), 10000);
+    }
     if (!createWandMenuEntry()) {
         const observer = new MutationObserver(() => {
             if (createWandMenuEntry()) observer.disconnect();

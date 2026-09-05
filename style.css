@@ -38,6 +38,7 @@ html[data-st-pocket-theme='cream-apple'] {
     --st-pocket-accent: #a35d63;
     --st-pocket-accent-strong: #743f45;
     --st-pocket-accent-soft: #ead8d5;
+    --st-pocket-dialogue-highlight: #f3e3e1;
     --st-pocket-secondary: #87947b;
     --st-pocket-secondary-soft: #dce2d6;
     --st-pocket-text: #4a4540;
@@ -1611,9 +1612,21 @@ html.st-pocket-ui-enabled #chat :is(a, q) {
 
 /* Dialogue must remain distinguishable from narration even when a native
    theme's quote colour was designed for a dark background. */
-html.st-pocket-ui-enabled #chat .mes_text q {
+html.st-pocket-ui-enabled #chat .mes_text :is(q, .st-pocket-dialogue) {
     color: var(--st-pocket-accent-strong);
     font-weight: 650;
+    background-color: var(--st-pocket-dialogue-highlight);
+    border-radius: 0.25em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding-inline: 0.08em;
+}
+
+/* Native Markdown emphasis is used as the quieter inner-thought voice. */
+html.st-pocket-ui-enabled #chat .mes_text em {
+    color: var(--st-pocket-text-muted);
+    font-style: italic;
+    font-weight: 500;
 }
 
 html.st-pocket-ui-enabled #chat .mes_reasoning_details {
@@ -1634,11 +1647,12 @@ html.st-pocket-ui-enabled #chat .mes_reasoning {
 
 html[data-st-pocket-layout='mobile'] #chat .mes {
     max-width: none;
+    padding-inline: 0.25rem !important;
 }
 
 html[data-st-pocket-layout='mobile'] #chat .mes_block {
     min-width: 0;
-    padding-left: 0.35rem;
+    padding-inline: 0 !important;
 }
 
 html.st-pocket-ui-enabled #chat :is(code, pre) {
